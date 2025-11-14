@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoBazaar - Carbon-Aware Shopping</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-green: #059669;
+            --light-green: #10b981;
+            --dark-green: #047857;
+            --bg-light: #f0fdf4;
+            --bg-white: #ffffff;
+            --text-dark: #1f2937;
+            --text-gray: #6b7280;
+            --border-color: #d1fae5;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--dark-green) 0%, var(--primary-green) 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: var(--shadow-lg);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.75rem;
+            font-weight: bold;
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.65rem 1.25rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: white;
+            color: var(--primary-green);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-success {
+            background: var(--light-green);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: var(--dark-green);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: var(--bg-light);
+        }
+
+        .stat-info h3 {
+            font-size: 1.75rem;
+            color: var(--primary-green);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-info p {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+        }
+
+        /* Filters Section */
+        .filters-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .filters-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .filters-header h2 {
+            color: var(--primary-green);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 0.9rem;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 0.65rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: var(--primary-green);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* Products Grid */
+        .products-section {
+            margin-top: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-header h2 {
+            color: var(--primary-green);
+            font-size: 1.75rem;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+        }
+
+        .product-content {
+            padding: 1.25rem;
+        }
+
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 0.75rem;
+        }
+
+        .product-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .product-category {
+            color: var(--text-gray);
+            font-size: 0.85rem;
+        }
+
+        .eco-badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: white;
+            white-space: nowrap;
+        }
+
+        .product-description {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .carbon-info {
+            background: var(--bg-light);
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .carbon-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-green);
+        }
+
+        .carbon-label {
+            font-size: 0.8rem;
+            color: var(--text-gray);
+        }
+
+        .eco-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .eco-tag {
+            padding: 0.25rem 0.6rem;
+            background: var(--bg-light);
+            color: var(--primary-green);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 2px solid var(--border-color);
+        }
+
+        .product-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-green);
+        }
+
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.9rem;
+            color: #f59e0b;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            color: var(--primary-green);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.75rem;
+            cursor: pointer;
+            color: var(--text-gray);
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-gray);
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--primary-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            color: var(--text-gray);
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h3 {
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state p {
+            color: var(--text-gray);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Header -->
+<header class="header">
+    <div class="header-content">
+        <div class="logo">
+            <span class="logo-icon">🌱</span>
+            <span>EcoBazaar</span>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-primary" onclick="showAddProductModal()">
+                ➕ Add Product
+            </button>
+            <button class="btn btn-success" onclick="loadProducts()">
+                🔄 Refresh
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- Main Container -->
+<div class="container">
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-info">
+                <h3 id="totalProducts">0</h3>
+                <p>Total Products</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-info">
+                <h3 id="ecoCertified">0</h3>
+                <p>Eco-Certified</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🌿</div>
+            <div class="stat-info">
+                <h3 id="avgCarbon">0</h3>
+                <p>Avg Carbon (kg CO₂e)</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">♻️</div>
+            <div class="stat-info">
+                <h3 id="recyclableCount">0</h3>
+                <p>Recyclable Products</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="filters-section">
+        <div class="filters-header">
+            <h2>🔍 Filter Products</h2>
+            <button class="btn btn-success" onclick="applyFilters()">Apply Filters</button>
+        </div>
+        <div class="filters-grid">
+            <div class="filter-group">
+                <label>Search</label>
+                <input type="text" id="searchInput" placeholder="Search products...">
+            </div>
+            <div class="filter-group">
+                <label>Category</label>
+                <select id="categoryFilter">
+                    <option value="">All Categories</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Clothing">Clothing</option>
+                    <option value="Food">Food</option>
+                    <option value="Books">Books</option>
+                    <option value="Toys">Toys</option>
+                    <option value="Furniture">Furniture</option>
+                    <option value="Beauty">Beauty</option>
+                    <option value="Sports">Sports</option>
+                    <option value="Home & Garden">Home & Garden</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Max Carbon (kg CO₂e)</label>
+                <input type="number" id="maxCarbonFilter" placeholder="e.g., 10" step="0.1">
+            </div>
+            <div class="filter-group">
+                <label>Min Eco Rating</label>
+                <input type="number" id="minRatingFilter" placeholder="e.g., 3.5" step="0.1" min="0" max="5">
+            </div>
+        </div>
+        <div class="filters-grid" style="margin-top: 1rem;">
+            <div class="checkbox-group">
+                <input type="checkbox" id="ecoCertifiedFilter">
+                <label for="ecoCertifiedFilter">Eco-Certified Only</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="recyclableFilter">
+                <label for="recyclableFilter">Recyclable Only</label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Section -->
+    <div class="products-section">
+        <div class="section-header">
+            <h2>🛍️ Product Catalog</h2>
+            <span id="productCount" style="color: var(--text-gray);">0 products</span>
+        </div>
+        <div id="productsContainer" class="products-grid">
+            <!-- Products will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Product Modal -->
+<div id="productModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">Add New Product</h2>
+            <button class="close-btn" onclick="closeModal()">×</button>
+        </div>
+        <form id="productForm" onsubmit="saveProduct(event)">
+            <div class="form-group">
+                <label>Product Name *</label>
+                <input type="text" id="productName" required>
+            </div>
+            <div class="form-group">
+                <label>Description *</label>
+                <textarea id="productDescription" required></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Price ($) *</label>
+                    <input type="number" id="productPrice" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Stock Quantity</label>
+                    <input type="number" id="productStock" value="0">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Category *</label>
+                    <select id="productCategory" required>
+                        <option value="">Select Category</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Clothing">Clothing</option>
+                        <option value="Food">Food</option>
+                        <option value="Books">Books</option>
+                        <option value="Toys">Toys</option>
+                        <option value="Furniture">Furniture</option>
+                        <option value="Beauty">Beauty</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Home & Garden">Home & Garden</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Brand</label>
+                    <input type="text" id="productBrand">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Weight (kg)</label>
+                    <input type="number" id="productWeight" step="0.001">
+                </div>
+                <div class="form-group">
+                    <label>Carbon Impact (kg CO₂e)</label>
+                    <input type="number" id="productCarbon" step="0.001" placeholder="Auto-calculated">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Manufacturing Location</label>
+                <input type="text" id="productLocation" placeholder="e.g., India, China">
+            </div>
+            <div class="form-group">
+                <label>Image URL</label>
+                <input type="file" id="productImage" placeholder="image/*">
+            </div>
+            <div class="form-group">
+                <label style="font-weight: 600; margin-bottom: 0.75rem;">Eco Features</label>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="productEcoCertified">
+                    <label for="productEcoCertified">Eco-Certified</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="productRecyclable">
+                    <label for="productRecyclable">Recyclable</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="productBiodegradable">
+                    <label for="productBiodegradable">Biodegradable</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="productRenewable">
+                    <label for="productRenewable">Renewable Energy Used</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="productCarbonOffset">
+                    <label for="productCarbonOffset">Shipping Carbon Offset</label>
+                </div>
+            </div>
+            <input type="hidden" id="productId">
+            <input type="hidden" id="sellerId" value="1">
+            <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 1rem;">
+                Save Product
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const API_URL = 'http://localhost:8080/api/products';
+    let allProducts = [];
+
+    // Load products on page load
+    window.onload = () => {
+        loadProducts();
+    };
+
+    // Load all products
+    async function loadProducts() {
+        showLoading();
+        try {
+            const response = await fetch(API_URL);
+            allProducts = await response.json();
+            displayProducts(allProducts);
+            updateStats(allProducts);
+        } catch (error) {
+            console.error('Error loading products:', error);
+            showError('Failed to load products');
+        }
+    }
+
+    // Display products
+    function displayProducts(products) {
+        const container = document.getElementById('productsContainer');
+        document.getElementById('productCount').textContent = `${products.length} products`;
+
+        if (products.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state" style="grid-column: 1/-1;">
+                    <div class="empty-state-icon">📦</div>
+                    <h3>No Products Found</h3>
+                    <p>Try adjusting your filters or add new products</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = products.map(product => `
+            <div class="product-card" onclick="viewProduct(${product.id})">
+                <img src="${product.imageUrl || 'https://via.placeholder.com/300x200?text=Product+Image'}"
+                     alt="${product.name}" class="product-image">
+                <div class="product-content">
+                    <div class="product-header">
+                        <div>
+                            <div class="product-title">${product.name}</div>
+                            <div class="product-category">${product.category || 'Uncategorized'}</div>
+                        </div>
+                        <span class="eco-badge" style="background: ${product.ecoBadgeColor}">
+                            ${product.ecoLabel}
+                        </span>
+                    </div>
+                    <p class="product-description">${product.description}</p>
+                    <div class="carbon-info">
+                        <span style="font-size: 1.5rem;">🌍</span>
+                        <div>
+                            <div class="carbon-value">${product.carbonImpact} kg</div>
+                            <div class="carbon-label">CO₂e Footprint</div>
+                        </div>
+                    </div>
+                    <div class="eco-features">
+                        ${product.ecoCertified ? '<span class="eco-tag">✅ Certified</span>' : ''}
+                        ${product.recyclable ? '<span class="eco-tag">♻️ Recyclable</span>' : ''}
+                        ${product.biodegradable ? '<span class="eco-tag">🌱 Biodegradable</span>' : ''}
+                        ${product.renewableEnergyUsed ? '<span class="eco-tag">⚡ Renewable</span>' : ''}
+                    </div>
+                    <div class="product-footer">
+                        <span class="product-price">$${product.price}</span>
+                        <div class="rating">
+                            <span>⭐</span>
+                            <span>${product.ecoRating || '0.0'}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Update statistics
+    function updateStats(products) {
+        document.getElementById('totalProducts').textContent = products.length;
+        document.getElementById('ecoCertified').textContent =
+            products.filter(p => p.ecoCertified).length;
+
+        const avgCarbon = products.length > 0
+            ? (products.reduce((sum, p) => sum + parseFloat(p.carbonImpact), 0) / products.length).toFixed(2)
+            : '0';
+        document.getElementById('avgCarbon').textContent = avgCarbon;
+
+        document.getElementById('recyclableCount').textContent =
+            products.filter(p => p.recyclable).length;
+    }
+
+    // Apply filters
+    async function applyFilters() {
+        const search = document.getElementById('searchInput').value;
+        const category = document.getElementById('categoryFilter').value;
+        const maxCarbon = document.getElementById('maxCarbonFilter').value;
+        const minRating = document.getElementById('minRatingFilter').value;
+        const ecoCertified = document.getElementById('ecoCertifiedFilter').checked;
+        const recyclable = document.getElementById('recyclableFilter').checked;
+
+        // Search by keyword
+        if (search) {
+            try {
+                const response = await fetch(`${API_URL}/search?keyword=${search}`);
+                const products = await response.json();
+                displayProducts(products);
+                return;
+            } catch (error) {
+                console.error('Error searching:', error);
+            }
+        }
+
+        // Filter with advanced criteria
+        if (category || maxCarbon || minRating || ecoCertified || recyclable) {
+            try {
+                const filterData = {
+                    category: category || null,
+                    maxCarbonImpact: maxCarbon ? parseFloat(maxCarbon) : null,
+                    minEcoRating: minRating ? parseFloat(minRating) : null,
+                    ecoCertified: ecoCertified || null,
+                    recyclable: recyclable || null
+                };
+
+                const response = await fetch(`${API_URL}/filter`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(filterData)
+                });
+                const products = await response.json();
+                displayProducts(products);
+            } catch (error) {
+                console.error('Error filtering:', error);
+            }
+        } else {
+            displayProducts(allProducts);
+        }
+    }
+
+    // Show add product modal
+    function showAddProductModal() {
+        document.getElementById('modalTitle').textContent = 'Add New Product';
+        document.getElementById('productForm').reset();
+        document.getElementById('productId').value = '';
+        document.getElementById('productModal').classList.add('active');
+    }
+
+    // Close modal
+    function closeModal() {
+        document.getElementById('productModal').classList.remove('active');
+    }
+
+    // Save product
+    async function saveProduct(event) {
+        event.preventDefault();
+
+        const productData = {
+            name: document.getElementById('productName').value,
+            description: document.getElementById('productDescription').value,
+            price: parseFloat(document.getElementById('productPrice').value),
+            stockQuantity: parseInt(document.getElementById('productStock').value) || 0,
+            category: document.getElementById('productCategory').value,
+            brand: document.getElementById('productBrand').value,
+            weightKg: parseFloat(document.getElementById('productWeight').value) || null,
+            carbonImpact: parseFloat(document.getElementById('productCarbon').value) || null,
+            manufacturingLocation: document.getElementById('productLocation').value,
+            ecoCertified: document.getElementById('productEcoCertified').checked,
+            recyclable: document.getElementById('productRecyclable').checked,
+            biodegradable: document.getElementById('productBiodegradable').checked,
+            renewableEnergyUsed: document.getElementById('productRenewable').checked,
+            shippingCarbonOffset: document.getElementById('productCarbonOffset').checked,
+            sellerId: parseInt(document.getElementById('sellerId').value),
+            sellerName: 'Demo Seller'
+        };
+        const formData = new FormData();
+
+        // The backend controller expects a part named "product"
+        formData.append('product', new Blob([JSON.stringify(productData)], {
+            type: "application/json"
+        }));
+
+        const imageFile = document.getElementById('productImage').files[0];
+        if (imageFile) {
+            formData.append('file', imageFile);
+        }
+        try {
+            const productId = document.getElementById('productId').value;
+            const url = productId ? `${API_URL}/${productId}` : API_URL;
+            const method = productId ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method: method,
+                body: formData
+            });
+
+            if (response.ok) {
+                alert('Product saved successfully!');
+                closeModal();
+                loadProducts();
+            } else {
+                alert('Failed to save product');
+            }
+        } catch (error) {
+            console.error('Error saving product:', error);
+            alert('Error saving product');
+        }
+    }
+
+    // View product details
+    async function viewProduct(id) {
+        try {
+            const response = await fetch(`${API_URL}/${id}`);
+            const product = await response.json();
+
+            // Show detailed view or open edit modal
+            alert(`Product: ${product.name}\nCarbon: ${product.carbonImpact} kg CO₂e\nRating: ${product.ecoRating}\n\nClick 'Add Product' to create new items`);
+        } catch (error) {
+            console.error('Error viewing product:', error);
+        }
+    }
+
+    // Show loading state
+    function showLoading() {
+        document.getElementById('productsContainer').innerHTML = `
+            <div class="loading" style="grid-column: 1/-1;">
+                <div class="spinner"></div>
+                <p>Loading products...</p>
+            </div>
+        `;
+    }
+
+    // Show error
+    function showError(message) {
+        document.getElementById('productsContainer').innerHTML = `
+            <div class="empty-state" style="grid-column: 1/-1;">
+                <div class="empty-state-icon">⚠️</div>
+                <h3>Error</h3>
+                <p>${message}</p>
+            </div>
+        `;
+    }
+
+    // Close modal on outside click
+    document.getElementById('productModal').addEventListener('click', (e) => {
+        if (e.target.id === 'productModal') {
+            closeModal();
+        }
+    });
+</script>
+</body>
+</html>
