@@ -14,10 +14,10 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "products")
-@Data // Generates getters, setters, toString, equals, hashCode
-@NoArgsConstructor // Generates no-args constructor
-@AllArgsConstructor // Generates all-args constructor
-@Builder // Implements the builder pattern
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Product {
 
     @Id
@@ -49,14 +49,14 @@ public class Product {
     @NotNull(message = "Carbon impact is required")
     @DecimalMin(value = "0.0")
     @Column(name = "carbon_impact", nullable = false, precision = 10, scale = 3)
-    private BigDecimal carbonImpact; // CO2e in kg
+    private BigDecimal carbonImpact;
 
     @Column(name = "carbon_calculation_method")
     @Enumerated(EnumType.STRING)
     private CarbonCalculationMethod carbonCalculationMethod;
 
     @Column(name = "carbon_breakdown", columnDefinition = "TEXT")
-    private String carbonBreakdown; // JSON string with detailed breakdown
+    private String carbonBreakdown;
 
     @Builder.Default
     @Column(name = "eco_certified")
@@ -68,7 +68,7 @@ public class Product {
     @Column(name = "eco_rating")
     @DecimalMin(value = "0.0")
     @DecimalMax(value = "5.0")
-    private BigDecimal ecoRating; // 0-5 scale
+    private BigDecimal ecoRating;
 
     // Product Details
     @Column(name = "category")
@@ -80,8 +80,9 @@ public class Product {
     @Column(name = "brand")
     private String brand;
 
-    @Column(name = "image_data", columnDefinition = "bytea")
-    private byte[] imageData;
+    // CHANGED: Store image URL instead of binary data
+    @Column(name = "image_url", columnDefinition = "TEXT")
+    private String imageUrl;
 
     @Builder.Default
     @Column(name = "stock_quantity")
@@ -91,7 +92,7 @@ public class Product {
     private BigDecimal weightKg;
 
     @Column(name = "dimensions")
-    private String dimensions; // e.g., "10x20x30 cm"
+    private String dimensions;
 
     @Column(name = "manufacturing_location")
     private String manufacturingLocation;
@@ -140,9 +141,7 @@ public class Product {
         ESTIMATED
     }
 
-    // All manual constructors, getters, setters, and the Builder class are removed.
-
-    // Helper methods remain
+    // Helper methods
     @Transient
     public String getEcoLabel() {
         if (carbonImpact == null) return "UNKNOWN";

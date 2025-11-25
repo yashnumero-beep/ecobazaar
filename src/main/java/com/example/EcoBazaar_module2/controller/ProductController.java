@@ -1,10 +1,9 @@
 package com.example.EcoBazaar_module2.controller;
 
-
 import com.example.EcoBazaar_module2.dtos.ProductFilterDTO;
 import com.example.EcoBazaar_module2.dtos.ProductRequestDTO;
 import com.example.EcoBazaar_module2.dtos.ProductResponseDTO;
-import com.example.EcoBazaar_module2.dtos.ProductUpdateDTO; // Import the new DTO
+import com.example.EcoBazaar_module2.dtos.ProductUpdateDTO;
 import com.example.EcoBazaar_module2.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,30 +30,32 @@ public class ProductController {
 
     /**
      * Create new product
+     * CHANGED: Now accepts imageUrl in JSON body, file parameter optional for backward compatibility
      */
-    @PostMapping(consumes = {"multipart/form-data"}) // Specify consumes
+    @PostMapping(consumes = {"multipart/form-data"})
     @Operation(summary = "Create a new product with carbon footprint data")
     public ResponseEntity<ProductResponseDTO> createProduct(
-            @Valid @RequestPart("product") ProductRequestDTO request, // Get DTO as form part
-            @RequestParam(value = "file", required = false) MultipartFile file // Get file
+            @Valid @RequestPart("product") ProductRequestDTO request,
+            @RequestParam(value = "file", required = false) MultipartFile file
     ) {
         log.info("REST request to create product: {}", request.getName());
-        ProductResponseDTO response = productService.createProduct(request, file); // Pass file to service
+        ProductResponseDTO response = productService.createProduct(request, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
      * Partially update existing product
+     * CHANGED: Now accepts imageUrl in JSON body, file parameter optional for backward compatibility
      */
-    @PatchMapping(value = "/{id}", consumes = {"multipart/form-data"}) // Changed from @PutMapping to @PatchMapping
+    @PatchMapping(value = "/{id}", consumes = {"multipart/form-data"})
     @Operation(summary = "Partially update an existing product")
     public ResponseEntity<ProductResponseDTO> updateProduct(
             @PathVariable Long id,
-            @Valid @RequestPart("product") ProductUpdateDTO request, // Use ProductUpdateDTO
-            @RequestParam(value = "file", required = false) MultipartFile file // Get file (optional for update)
+            @Valid @RequestPart("product") ProductUpdateDTO request,
+            @RequestParam(value = "file", required = false) MultipartFile file
     ) {
         log.info("REST request to PATCH product with ID: {}", id);
-        ProductResponseDTO response = productService.updateProduct(id, request, file); // Pass file to service
+        ProductResponseDTO response = productService.updateProduct(id, request, file);
         return ResponseEntity.ok(response);
     }
 
@@ -94,12 +95,14 @@ public class ProductController {
 
     /**
      * Filter products with advanced criteria
+     * CHANGED: Now supports sorting by carbon footprint (sortBy=carbon, sortOrder=asc/desc)
      */
     @PostMapping("/filter")
-    @Operation(summary = "Filter products with multiple criteria")
+    @Operation(summary = "Filter products with multiple criteria including carbon footprint sorting")
     public ResponseEntity<List<ProductResponseDTO>> filterProducts(
             @RequestBody ProductFilterDTO filter) {
-        log.info("REST request to filter products");
+        log.info("REST request to filter products with sortBy: {}, sortOrder: {}",
+                filter.getSortBy(), filter.getSortOrder());
         List<ProductResponseDTO> products = productService.filterProducts(filter);
         return ResponseEntity.ok(products);
     }
