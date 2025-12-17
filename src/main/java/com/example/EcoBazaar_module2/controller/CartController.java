@@ -1,87 +1,69 @@
 package com.example.EcoBazaar_module2.controller;
 
-
-import com.example.EcoBazaar_module2.model.Product;
-import com.example.EcoBazaar_module2.model.User;
+import com.example.EcoBazaar_module2.model.Cart;
+import com.example.EcoBazaar_module2.model.CartItem;
+import com.example.EcoBazaar_module2.service.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
-
-interface ProductRepo extends JpaRepository<Product, Long> {
-    List<Product> findByCategory(String category);
-}
-interface UserRepo extends JpaRepository<User, Long> {}
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/cart")
 public class CartController {
 
     @Autowired
-    private ProductRepo productRepo;
+    private CartService cartService;
 
-    @Autowired
-    private UserRepo userRepo;
+    @GetMapping("/{userId}")
+    public ResponseEntity<Map<String, Object>> getCart(@PathVariable Long userId) {
+        Cart cart = cartService.getUserCart(userId);
 
-    // Module 3: Checkout & Impact Calculation
-    // In a real app, we'd have a persistent 'Cart' entity.
-    // Here we simulate checkout with a list of product IDs.
-    @PostMapping("/checkout/{userId}")
-    public CartSummary checkout(@PathVariable Long userId, @RequestBody List<Long> productIds) {
-        User user = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", cart.getId());
+        response.put("items", cart.getItems().stream().map(item -> {
+            Map<String, Object> itemDTO = new HashMap<>();
+            itemDTO.put("id", item.getId());
+            itemDTO.put("productId", item.getProduct().getId());
+            itemDTO.put("productName", item.getProduct().getName());
+            itemDTO.put("price", item.getProduct().getPrice());
+            itemDTO.put("carbonFootprint", item.getProduct().getTotalCarbonFootprint());
+            itemDTO.put("quantity", item.getQuantity());
+            itemDTO.put("imageUrl", item.getProduct().getImageUrl());
+            return itemDTO;
+        }).collect(Collectors.toList()));
 
-        double totalCost = 0;
-        double totalCarbon = 0;
-        double potentialCarbonSavings = 0;
-        List<String> suggestions = new ArrayList<>();
-
-        for (Long pid : productIds) {
-            Product p = productRepo.findById(pid).orElse(null);
-            if (p != null) {
-                totalCost += p.getPrice();
-                totalCarbon += p.getCarbonFootprint();
-
-                // Module 3 Logic: Suggest Greener Alternative
-                if (!p.isEcoFriendly()) {
-                    List<Product> alternatives = productRepo.findByCategory(p.getCategory());
-                    // Find an alternative with significantly lower CO2
-                    Optional<Product> better = alternatives.stream()
-                            .filter(alt -> alt.getCarbonFootprint() < p.getCarbonFootprint())
-                            .findFirst();
-
-                    if (better.isPresent()) {
-                        double saving = p.getCarbonFootprint() - better.get().getCarbonFootprint();
-                        suggestions.add("Switch " + p.getName() + " to " + better.get().getName() + " to save " + String.format("%.2f", saving) + "kg CO2");
-                        potentialCarbonSavings += saving;
-                    }
-                } else {
-                    // If they bought green, they save impact compared to "average" (mock logic)
-                    user.addCarbonSaved(1.5); // Reward for buying green
-                }
-            }
-        }
-
-        userRepo.save(user); // Update user stats (Module 4)
-
-        return new CartSummary(totalCost, totalCarbon, suggestions, potentialCarbonSavings);
+        return ResponseEntity.ok(response);
     }
 
-    // DTO for Cart Response
-    static class CartSummary {
-        public double totalCost;
-        public double totalCarbon;
-        public List<String> ecoSuggestions;
-        public double potentialSavings;
+    @PostMapping("/{userId}/items")
+    public ResponseEntity<?> addItem(@PathVariable Long userId, @RequestBody Map<String, Object> request) {
+        try {
+            Long productId = Long.valueOf(request.get("productId").toString());
+            Integer quantity = Integer.valueOf(request.getOrDefault("quantity", 1).toString());
 
-        public CartSummary(double c, double co2, List<String> s, double ps) {
-            this.totalCost = c;
-            this.totalCarbon = co2;
-            this.ecoSuggestions = s;
-            this.potentialSavings = ps;
+            CartItem item = cartService.addItemToCart(userId, productId, quantity);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Item added to cart",
+                    "itemId", item.getId()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/{userId}/items/{itemId}")
+    public ResponseEntity<?> removeItem(@PathVariable Long userId, @PathVariable Long itemId) {
+        try {
+            cartService.removeItemFromCart(userId, itemId);
+            return ResponseEntity.ok(Map.of("message", "Item removed"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 }

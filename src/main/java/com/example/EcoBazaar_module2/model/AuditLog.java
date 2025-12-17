@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -13,31 +12,30 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "users")
-public class User {
+@Table(name = "audit_logs")
+public class AuditLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+    @ManyToOne
+    @JoinColumn(name = "actor_id", nullable = false)
+    private User actor;
 
     @Column(nullable = false)
-    private String password;
-
-    private String fullName;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role;
+    private String action;
 
     @Column(nullable = false)
-    private boolean active = true;
+    private String entityType;
+
+    @Column(nullable = false)
+    private Long entityId;
+
+    @Column(columnDefinition = "TEXT")
+    private String metadata;
 
     @CreationTimestamp
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime timestamp;
 }

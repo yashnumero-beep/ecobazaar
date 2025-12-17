@@ -1,15 +1,12 @@
 package com.example.EcoBazaar_module2.model;
 
 import jakarta.persistence.*;
-
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -23,24 +20,48 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String name;
+
+    @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Column(nullable = false)
     private Double price;
+
     private String imageUrl;
-
-    // Module 2: Carbon Data
-    private Double carbonFootprint; // in kg CO2e
-    private String ecoRating; // "A+", "A", "B", "C"
-
-    // Category is crucial for finding "Greener Alternatives"
     private String category;
 
-    // Module 5: Admin Verification
-    private boolean isVerified;
-    private Long sellerId;
+    @ManyToOne
+    @JoinColumn(name = "seller_id", nullable = false)
+    private User seller;
 
-    // Helper to determine if this is a "Green" product
-    public boolean isEcoFriendly() {
-        return "A+".equals(ecoRating) || "A".equals(ecoRating);
+    @Column(nullable = false)
+    private boolean active = true;
+
+    @Column(nullable = false)
+    private boolean verified = false;
+
+    @OneToOne(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private ProductCarbonData carbonData;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
+    // Computed field
+    @Transient
+    public Double getTotalCarbonFootprint() {
+        return carbonData != null ? carbonData.getTotalCO2e() : 0.0;
+    }
+
+    @Transient
+    public String getEcoRating() {
+        Double total = getTotalCarbonFootprint();
+        if (total < 2.0) return "A+";
+        else if (total < 5.0) return "B";
+        else return "C";
     }
 }

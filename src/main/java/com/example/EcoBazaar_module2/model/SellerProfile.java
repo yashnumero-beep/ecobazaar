@@ -13,24 +13,20 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "users")
-public class User {
+@Table(name = "seller_profiles")
+public class SellerProfile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
 
-    @Column(nullable = false)
-    private String password;
-
-    private String fullName;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role;
+    private String businessName;
+    private String description;
+    private String contactPhone;
 
     @Column(nullable = false)
     private boolean active = true;

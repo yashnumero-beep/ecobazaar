@@ -1,109 +1,114 @@
 package com.example.EcoBazaar_module2.controller;
 
-
 import com.example.EcoBazaar_module2.model.Product;
-
+import com.example.EcoBazaar_module2.model.ProductCarbonData;
+import com.example.EcoBazaar_module2.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
+import java.util.HashMap;
 import java.util.List;
-
-interface ProductRepository extends JpaRepository<Product, Long> {
-    List<Product> findByCategory(String category);
-    List<Product> findByIsVerifiedTrue();
-    List<Product> findByIsVerifiedFalse(); // For Admin
-    List<Product> findBySellerId(Long sellerId); // For Sellers
-}
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
 
     @Autowired
-    private ProductRepository productRepository;
+    private ProductService productService;
 
-    // --- PUBLIC ENDPOINTS ---
-
-    // Module 2: Get All Verified Products (Catalog)
     @GetMapping
-    public List<Product> getAllProducts() {
-        return productRepository.findByIsVerifiedTrue();
+    public ResponseEntity<List<Map<String, Object>>> getAllProducts() {
+        List<Product> products = productService.getAllVerifiedProducts();
+        return ResponseEntity.ok(products.stream()
+                .map(this::toProductDTO)
+                .collect(Collectors.toList()));
     }
 
-    // Module 2: Get Product Details & Carbon Breakdown
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProduct(@PathVariable Long id) {
-        return productRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Map<String, Object>> getProduct(@PathVariable Long id) {
+        Product product = productService.getProductById(id);
+        return ResponseEntity.ok(toProductDTO(product));
     }
 
-    // --- SELLER ENDPOINTS ---
+    @PostMapping("/seller/add")
+    public ResponseEntity<?> addProduct(@RequestBody Map<String, Object> request) {
+        try {
+            Long sellerId = Long.valueOf(request.get("sellerId").toString());
+            String name = request.get("name").toString();
+            String description = request.get("description").toString();
+            Double price = Double.valueOf(request.get("price").toString());
+            String category = request.get("category").toString();
+            String imageUrl = request.getOrDefault("imageUrl", "").toString();
 
-    // Module 2: Add Product (Seller)
-    @PostMapping("/add")
-    public Product addProduct(@RequestBody Product product) {
-        product.setVerified(false); // Default to unverified
-        calculateRating(product);
-        return productRepository.save(product);
+            ProductCarbonData carbonData = new ProductCarbonData();
+            carbonData.setManufacturing(Double.valueOf(request.getOrDefault("manufacturing", 0.0).toString()));
+            carbonData.setTransportation(Double.valueOf(request.getOrDefault("transportation", 0.0).toString()));
+            carbonData.setPackaging(Double.valueOf(request.getOrDefault("packaging", 0.0).toString()));
+            carbonData.setUsage(Double.valueOf(request.getOrDefault("usage", 0.0).toString()));
+            carbonData.setDisposal(Double.valueOf(request.getOrDefault("disposal", 0.0).toString()));
+
+            Product product = productService.createProduct(sellerId, name, description, price,
+                    category, imageUrl, carbonData);
+
+            return ResponseEntity.ok(toProductDTO(product));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
-    // Module 2: Seller Dashboard - View My Products
     @GetMapping("/seller/{sellerId}")
-    public List<Product> getSellerProducts(@PathVariable Long sellerId) {
-        return productRepository.findBySellerId(sellerId);
+    public ResponseEntity<List<Map<String, Object>>> getSellerProducts(@PathVariable Long sellerId) {
+        List<Product> products = productService.getSellerProducts(sellerId);
+        return ResponseEntity.ok(products.stream()
+                .map(this::toProductDTO)
+                .collect(Collectors.toList()));
     }
 
-    // Module 2: Update Product (Seller) - NO DELETE ALLOWED
-    @PutMapping("/update/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product productDetails) {
-        return productRepository.findById(id).map(product -> {
-            product.setName(productDetails.getName());
-            product.setDescription(productDetails.getDescription());
-            product.setPrice(productDetails.getPrice());
-            product.setImageUrl(productDetails.getImageUrl());
-            product.setCategory(productDetails.getCategory());
-
-            // If Carbon Footprint changes, re-trigger verification logic
-            if (!product.getCarbonFootprint().equals(productDetails.getCarbonFootprint())) {
-                product.setCarbonFootprint(productDetails.getCarbonFootprint());
-                product.setVerified(false); // Reset verification if environmental data changes
-                calculateRating(product);
-            }
-
-            Product updatedProduct = productRepository.save(product);
-            return ResponseEntity.ok(updatedProduct);
-        }).orElse(ResponseEntity.notFound().build());
-    }
-
-    // --- ADMIN ENDPOINTS ---
-
-    // Module 5: Admin - Verify Product
-    @PutMapping("/admin/verify/{id}")
-    public ResponseEntity<?> verifyProduct(@PathVariable Long id) {
-        return productRepository.findById(id).map(product -> {
-            product.setVerified(true);
-            productRepository.save(product);
-            return ResponseEntity.ok("Product verified.");
-        }).orElse(ResponseEntity.notFound().build());
-    }
-
-    // Module 5: Admin - List Pending Products
     @GetMapping("/admin/pending")
-    public List<Product> getPendingProducts() {
-        return productRepository.findByIsVerifiedFalse();
+    public ResponseEntity<List<Map<String, Object>>> getPendingProducts() {
+        List<Product> products = productService.getPendingProducts();
+        return ResponseEntity.ok(products.stream()
+                .map(this::toProductDTO)
+                .collect(Collectors.toList()));
     }
 
-    // Helper method for Eco Rating
-    private void calculateRating(Product product) {
-        if (product.getCarbonFootprint() == null) return;
+    @PutMapping("/admin/verify/{id}")
+    public ResponseEntity<?> verifyProduct(@PathVariable Long id, @RequestParam Long adminId) {
+        try {
+            productService.verifyProduct(adminId, id);
+            return ResponseEntity.ok(Map.of("message", "Product verified"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
 
-        if (product.getCarbonFootprint() < 2.0) product.setEcoRating("A+");
-        else if (product.getCarbonFootprint() < 5.0) product.setEcoRating("B");
-        else product.setEcoRating("C");
+    private Map<String, Object> toProductDTO(Product product) {
+        Map<String, Object> dto = new HashMap<>();
+        dto.put("id", product.getId());
+        dto.put("name", product.getName());
+        dto.put("description", product.getDescription());
+        dto.put("price", product.getPrice());
+        dto.put("imageUrl", product.getImageUrl());
+        dto.put("category", product.getCategory());
+        dto.put("carbonFootprint", product.getTotalCarbonFootprint());
+        dto.put("ecoRating", product.getEcoRating());
+        dto.put("verified", product.isVerified());
+        dto.put("sellerId", product.getSeller().getId());
+        dto.put("sellerName", product.getSeller().getFullName());
+
+        if (product.getCarbonData() != null) {
+            Map<String, Double> breakdown = new HashMap<>();
+            breakdown.put("manufacturing", product.getCarbonData().getManufacturing());
+            breakdown.put("transportation", product.getCarbonData().getTransportation());
+            breakdown.put("packaging", product.getCarbonData().getPackaging());
+            breakdown.put("usage", product.getCarbonData().getUsage());
+            breakdown.put("disposal", product.getCarbonData().getDisposal());
+            dto.put("carbonBreakdown", breakdown);
+        }
+
+        return dto;
     }
 }

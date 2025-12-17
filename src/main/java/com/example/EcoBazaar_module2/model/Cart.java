@@ -8,32 +8,26 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "users")
-public class User {
+@Table(name = "carts")
+public class Cart {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
 
-    @Column(nullable = false)
-    private String password;
-
-    private String fullName;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role;
-
-    @Column(nullable = false)
-    private boolean active = true;
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CartItem> items = new ArrayList<>();
 
     @CreationTimestamp
     private LocalDateTime createdAt;

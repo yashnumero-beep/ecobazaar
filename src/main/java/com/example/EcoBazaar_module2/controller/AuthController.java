@@ -1,63 +1,57 @@
 package com.example.EcoBazaar_module2.controller;
 
-
+import com.example.EcoBazaar_module2.model.Role;
 import com.example.EcoBazaar_module2.model.User;
+import com.example.EcoBazaar_module2.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-// Simple Repository definition inside file for compactness
-interface UserRepository extends JpaRepository<User, Long> {
-    User findByEmail(String email);
-}
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
     @Autowired
-    private UserRepository userRepository;
+    private AuthService authService;
 
-    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-    // Module 1: Registration
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody User user) {
-        if (userRepository.findByEmail(user.getEmail()) != null) {
-            return ResponseEntity.badRequest().body("Error: Email already in use!");
+    public ResponseEntity<?> register(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.get("email");
+            String password = request.get("password");
+            String fullName = request.get("fullName");
+            Role role = Role.valueOf(request.get("role"));
+
+            User user = authService.registerUser(email, password, fullName, role);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "User registered successfully",
+                    "userId", user.getId()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
-
-        // Encrypt password
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-
-        // Default stats
-        user.setTotalCarbonSaved(0.0);
-        user.setEcoScore(0);
-
-        userRepository.save(user);
-        return ResponseEntity.ok("User registered successfully!");
     }
 
-    // Module 1: Login (Simplified for prototype - Returns user object/role)
-    // In production, this would return a JWT Token.
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
-        User user = userRepository.findByEmail(loginRequest.getEmail());
+    public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.get("email");
+            String password = request.get("password");
 
-        if (user != null && passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-            return ResponseEntity.ok(user); // Send back user info + Role
+            User user = authService.authenticateUser(email, password);
+
+            // Return user info (in production, return JWT)
+            return ResponseEntity.ok(Map.of(
+                    "id", user.getId(),
+                    "email", user.getEmail(),
+                    "fullName", user.getFullName(),
+                    "role", user.getRole().toString()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", e.getMessage()));
         }
-        return ResponseEntity.status(401).body("Invalid credentials");
-    }
-
-    // DTO
-    static class LoginRequest {
-        private String email;
-        private String password;
-        // getters setters...
-        public String getEmail() { return email; }
-        public String getPassword() { return password; }
     }
 }
