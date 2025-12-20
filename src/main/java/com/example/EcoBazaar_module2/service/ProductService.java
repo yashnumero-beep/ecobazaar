@@ -8,9 +8,12 @@ import com.example.EcoBazaar_module2.repository.ProductCarbonDataRepository;
 import com.example.EcoBazaar_module2.repository.ProductRepository;
 import com.example.EcoBazaar_module2.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,8 +32,48 @@ public class ProductService {
     @Autowired
     private AuditService auditService;
 
-    public List<Product> getAllVerifiedProducts() {
-        return productRepository.findByVerifiedTrue();
+    @Autowired
+    private ImageService imageService;
+
+    public Page<Product> searchProducts(String name, String category, Double minPrice,
+                                        Double maxPrice, Double maxCarbon, String sortBy,
+                                        int page, int size, Boolean featured) {
+
+        // Create pageable with sorting
+        Sort sort = Sort.unsorted();
+        if (sortBy != null) {
+            switch (sortBy) {
+                case "price_asc": sort = Sort.by("price").ascending(); break;
+                case "price_desc": sort = Sort.by("price").descending(); break;
+                case "rating": sort = Sort.by("averageRating").descending(); break;
+                case "popular": sort = Sort.by("soldCount").descending(); break;
+                case "newest": sort = Sort.by("createdAt").descending(); break;
+                case "carbon_asc": sort = Sort.by("carbonData.manufacturing").ascending(); break;
+                default: sort = Sort.by("createdAt").descending();
+            }
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // Use repository method with specifications
+        Page<Product> products = productRepository.searchProducts(
+                name,
+                (category != null && !category.equals("All")) ? category : null,
+                minPrice,
+                maxPrice,
+                featured,
+                pageable
+        );
+
+        // Filter by carbon if specified (done in memory for simplicity)
+        if (maxCarbon != null) {
+            List<Product> filtered = products.getContent().stream()
+                    .filter(p -> p.getTotalCarbonFootprint() <= maxCarbon)
+                    .collect(Collectors.toList());
+            return new PageImpl<>(filtered, pageable, filtered.size());
+        }
+
+        return products;
     }
 
     public Product getProductById(Long id) {
@@ -38,26 +81,26 @@ public class ProductService {
                 .orElseThrow(() -> new RuntimeException("Product not found"));
     }
 
-    public List<Product> searchProducts(String name, String category, Double minPrice, Double maxPrice, Double maxCarbon) {
-        List<Product> products = productRepository.searchProducts(
-                (name != null && !name.isEmpty()) ? name : null,
-                (category != null && !category.equals("All")) ? category : null,
-                minPrice,
-                maxPrice
-        );
+    @Transactional
+    public void incrementProductView(Long productId) {
+        Product product = getProductById(productId);
+        product.incrementViewCount();
+        productRepository.save(product);
+    }
 
-        if (maxCarbon != null) {
-            products = products.stream()
-                    .filter(p -> p.getTotalCarbonFootprint() <= maxCarbon)
-                    .collect(Collectors.toList());
-        }
+    public List<Product> getFeaturedProducts() {
+        return productRepository.findByFeaturedTrueAndVerifiedTrueAndActiveTrue();
+    }
 
-        return products;
+    public List<Product> getTrendingProducts() {
+        Pageable topTen = PageRequest.of(0, 10, Sort.by("soldCount").descending());
+        return productRepository.findByVerifiedTrueAndActiveTrue(topTen);
     }
 
     @Transactional
-    public Product createProduct(Long sellerId, String name, String description, Double price, Integer quantity,
-                                 String category, String imageUrl, String imagePath, ProductCarbonData carbonData) {
+    public Product createProduct(Long sellerId, String name, String description, Double price,
+                                 Integer quantity, String category, String images,
+                                 ProductCarbonData carbonData) {
         User seller = userRepository.findById(sellerId)
                 .orElseThrow(() -> new RuntimeException("Seller not found"));
 
@@ -71,8 +114,7 @@ public class ProductService {
         product.setPrice(price);
         product.setQuantity(quantity);
         product.setCategory(category);
-        product.setImageUrl(imageUrl);
-        product.setImagePath(imagePath);
+        product.setImages(images);
         product.setSeller(seller);
         product.setActive(true);
         product.setVerified(seller.getRole() == Role.ADMIN);
@@ -93,13 +135,43 @@ public class ProductService {
     }
 
     @Transactional
-    public Product updateProduct(Long userId, Long productId, String name, String description,
-                                 Double price, Integer quantity, String category, String imageUrl, String imagePath, ProductCarbonData newCarbonData) {
+    public List<String> addProductImages(Long productId, MultipartFile[] files) {
         Product product = getProductById(productId);
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        List<String> imageNames = new ArrayList<>();
+
+        for (MultipartFile file : files) {
+            try {
+                String fileName = imageService.saveProductImage(file, productId);
+                imageNames.add(fileName);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to upload image: " + e.getMessage());
+            }
+        }
+
+        // Append to existing images
+        String existingImages = product.getImages();
+        String newImages = String.join(",", imageNames);
+
+        if (existingImages != null && !existingImages.isEmpty()) {
+            product.setImages(existingImages + "," + newImages);
+        } else {
+            product.setImages(newImages);
+        }
+
+        productRepository.save(product);
+        return imageNames;
+    }
+
+    @Transactional
+    public Product updateProduct(Long userId, Long productId, String name, String description,
+                                 Double price, Integer quantity, String category, String images,
+                                 ProductCarbonData newCarbonData) {
+        Product product = getProductById(productId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (!product.getSeller().getId().equals(userId) && user.getRole() != Role.ADMIN) {
-            throw new RuntimeException("Unauthorized: You do not have permission to edit this product");
+            throw new RuntimeException("Unauthorized");
         }
 
         product.setName(name);
@@ -107,10 +179,9 @@ public class ProductService {
         product.setPrice(price);
         product.setQuantity(quantity);
         product.setCategory(category);
-        product.setImageUrl(imageUrl);
 
-        if (imagePath != null && !imagePath.isEmpty()) {
-            product.setImagePath(imagePath);
+        if (images != null && !images.isEmpty()) {
+            product.setImages(images);
         }
 
         if (newCarbonData != null) {
@@ -119,7 +190,6 @@ public class ProductService {
             }
 
             ProductCarbonData existingData = product.getCarbonData();
-
             if (isCarbonDataEmpty(newCarbonData)) {
                 calculateAutomaticCarbon(existingData, category, price);
             } else {
@@ -140,15 +210,33 @@ public class ProductService {
 
     @Transactional
     public void deleteProduct(Long userId, Long productId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
         Product product = getProductById(productId);
 
-        if (user.getRole() != Role.ADMIN) {
-            throw new RuntimeException("Unauthorized: Only Admins can delete products");
+        if (user.getRole() != Role.ADMIN && !product.getSeller().getId().equals(userId)) {
+            throw new RuntimeException("Unauthorized");
         }
 
         productRepository.delete(product);
-        auditService.log(userId, "DELETE_PRODUCT", "PRODUCT", productId, "Deleted by Admin");
+        auditService.log(userId, "DELETE_PRODUCT", "PRODUCT", productId, "Deleted");
+    }
+
+    @Transactional
+    public void toggleFeatured(Long adminId, Long productId) {
+        User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
+
+        if (admin.getRole() != Role.ADMIN) {
+            throw new RuntimeException("Unauthorized: Admin only");
+        }
+
+        Product product = getProductById(productId);
+        product.setFeatured(!product.isFeatured());
+        productRepository.save(product);
+
+        auditService.log(adminId, "TOGGLE_FEATURED", "PRODUCT", productId,
+                "Featured: " + product.isFeatured());
     }
 
     public List<Product> getSellerProducts(Long sellerId) {
@@ -164,7 +252,6 @@ public class ProductService {
         Product product = getProductById(productId);
         product.setVerified(true);
         productRepository.save(product);
-
         auditService.log(adminId, "VERIFY_PRODUCT", "PRODUCT", productId, null);
     }
 

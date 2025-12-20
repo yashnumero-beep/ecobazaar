@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -19,32 +18,40 @@ public class CartController {
     @Autowired
     private CartService cartService;
 
+    /**
+     * Get user's cart
+     */
     @GetMapping("/{userId}")
     public ResponseEntity<Map<String, Object>> getCart(@PathVariable Long userId) {
         Cart cart = cartService.getUserCart(userId);
 
         Map<String, Object> response = new HashMap<>();
         response.put("id", cart.getId());
-        response.put("items", cart.getItems().stream().map(item -> {
-            Map<String, Object> itemDTO = new HashMap<>();
-            itemDTO.put("id", item.getId());
-            itemDTO.put("productId", item.getProduct().getId());
-            itemDTO.put("productName", item.getProduct().getName());
-            itemDTO.put("price", item.getProduct().getPrice());
-            itemDTO.put("carbonFootprint", item.getProduct().getTotalCarbonFootprint());
-            itemDTO.put("quantity", item.getQuantity());
-            itemDTO.put("imageUrl", item.getProduct().getImageUrl());
-            return itemDTO;
-        }).collect(Collectors.toList()));
+
+        response.put(
+                "items",
+                cart.getItems()
+                        .stream()
+                        .map(this::mapToCartItemDTO)
+                        .collect(Collectors.toList())
+        );
 
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Add item to cart
+     */
     @PostMapping("/{userId}/items")
-    public ResponseEntity<?> addItem(@PathVariable Long userId, @RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> addItem(
+            @PathVariable Long userId,
+            @RequestBody Map<String, Object> request
+    ) {
         try {
-            Long productId = Long.valueOf(request.get("productId").toString());
-            Integer quantity = Integer.valueOf(request.getOrDefault("quantity", 1).toString());
+            Long productId = Long.parseLong(request.get("productId").toString());
+            Integer quantity = Integer.parseInt(
+                    request.getOrDefault("quantity", 1).toString()
+            );
 
             CartItem item = cartService.addItemToCart(userId, productId, quantity);
 
@@ -53,17 +60,54 @@ public class CartController {
                     "itemId", item.getId()
             ));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", e.getMessage()
+            ));
         }
     }
 
+    /**
+     * Remove item from cart
+     */
     @DeleteMapping("/{userId}/items/{itemId}")
-    public ResponseEntity<?> removeItem(@PathVariable Long userId, @PathVariable Long itemId) {
+    public ResponseEntity<?> removeItem(
+            @PathVariable Long userId,
+            @PathVariable Long itemId
+    ) {
         try {
             cartService.removeItemFromCart(userId, itemId);
-            return ResponseEntity.ok(Map.of("message", "Item removed"));
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Item removed successfully"
+            ));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", e.getMessage()
+            ));
         }
+    }
+
+    /**
+     * Map CartItem → API response
+     */
+    private Map<String, Object> mapToCartItemDTO(CartItem item) {
+        Map<String, Object> dto = new HashMap<>();
+
+        var product = item.getProduct();
+
+        dto.put("id", item.getId());
+        dto.put("productId", product.getId());
+        dto.put("productName", product.getName());
+        dto.put("price", product.getPrice());
+        dto.put("quantity", item.getQuantity());
+
+        // 🔥 Image handling — delegated to Product model
+        dto.put("imageUrl", product.getPrimaryImage());
+
+        // 🌱 Carbon data
+        dto.put("carbonFootprint", product.getTotalCarbonFootprint());
+        dto.put("ecoRating", product.getEcoRating());
+
+        return dto;
     }
 }

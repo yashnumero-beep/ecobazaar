@@ -9,8 +9,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Base64;
-import java.util.UUID;
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 public class ImageService {
@@ -18,31 +18,87 @@ public class ImageService {
     @Value("${file.upload-dir}")
     private String uploadDir;
 
-    public String saveBase64Image(String base64Image) throws IOException {
-        String[] parts = base64Image.split(",");
-        String imageString = parts.length > 1 ? parts[1] : parts[0];
+    private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png", "gif", "webp");
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-        byte[] imageBytes = Base64.getDecoder().decode(imageString);
+    /**
+     * Simplified: Save product image with organized naming
+     * Format: product_{productId}_{timestamp}.{ext}
+     */
+    public String saveProductImage(MultipartFile file, Long productId) throws IOException {
+        validateImage(file);
 
-        String fileName = UUID.randomUUID() + ".jpg";
-        Path path = Paths.get(uploadDir, fileName);
+        String extension = FilenameUtils.getExtension(file.getOriginalFilename());
+        if (extension == null || extension.isEmpty()) {
+            extension = "jpg";
+        }
 
-        Files.createDirectories(path.getParent());
-        Files.write(path, imageBytes);
+        // Simple, predictable naming: product_ID_timestamp.ext
+        String fileName = String.format("product_%d_%d.%s",
+                productId,
+                System.currentTimeMillis(),
+                extension
+        );
 
-        return fileName; // return filename to store in DB
+        Path uploadPath = Paths.get(uploadDir);
+        Files.createDirectories(uploadPath);
+
+        Path filePath = uploadPath.resolve(fileName);
+        Files.copy(file.getInputStream(), filePath);
+
+        return fileName;
     }
 
-    public String saveMultipartImage(MultipartFile file) throws IOException {
+    /**
+     * Save category icon
+     */
+    public String saveCategoryIcon(MultipartFile file, String categoryName) throws IOException {
+        validateImage(file);
+
         String extension = FilenameUtils.getExtension(file.getOriginalFilename());
-        if (extension == null || extension.isEmpty()) extension = "jpg";
+        String fileName = String.format("category_%s.%s",
+                categoryName.toLowerCase().replaceAll("\\s+", "_"),
+                extension
+        );
 
-        String fileName = UUID.randomUUID() + "." + extension;
+        Path uploadPath = Paths.get(uploadDir);
+        Files.createDirectories(uploadPath);
 
-        Path path = Paths.get(uploadDir, fileName);
-        Files.createDirectories(path.getParent());
-        Files.copy(file.getInputStream(), path);
+        Path filePath = uploadPath.resolve(fileName);
+        Files.copy(file.getInputStream(), filePath);
 
-        return fileName; // return filename to store in DB
+        return fileName;
+    }
+
+    /**
+     * Delete image by filename
+     */
+    public void deleteImage(String fileName) throws IOException {
+        Path filePath = Paths.get(uploadDir).resolve(fileName);
+        Files.deleteIfExists(filePath);
+    }
+
+    /**
+     * Validate uploaded image
+     */
+    private void validateImage(MultipartFile file) throws IOException {
+        if (file.isEmpty()) {
+            throw new IOException("File is empty");
+        }
+
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new IOException("File size exceeds maximum limit of 5MB");
+        }
+
+        String extension = FilenameUtils.getExtension(file.getOriginalFilename());
+        if (extension == null || !ALLOWED_EXTENSIONS.contains(extension.toLowerCase())) {
+            throw new IOException("Invalid file type. Allowed: " + ALLOWED_EXTENSIONS);
+        }
+
+        // Validate MIME type
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IOException("File must be an image");
+        }
     }
 }

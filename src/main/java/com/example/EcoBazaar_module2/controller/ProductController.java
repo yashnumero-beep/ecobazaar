@@ -4,12 +4,12 @@ import com.example.EcoBazaar_module2.model.Product;
 import com.example.EcoBazaar_module2.model.ProductCarbonData;
 import com.example.EcoBazaar_module2.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -19,30 +19,61 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
+    /**
+     * GET /api/products - Advanced search with pagination and sorting
+     * Query params: search, category, minPrice, maxPrice, maxCarbon,
+     *               sortBy, page, size, featured
+     */
     @GetMapping
-    public ResponseEntity<List<Map<String, Object>>> getAllProducts(
+    public ResponseEntity<Map<String, Object>> searchProducts(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
-            @RequestParam(required = false) Double maxCarbon
+            @RequestParam(required = false) Double maxCarbon,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(required = false) Boolean featured
     ) {
-        List<Product> products;
-        if (search == null && category == null && minPrice == null && maxPrice == null && maxCarbon == null) {
-            products = productService.getAllVerifiedProducts();
-        } else {
-            products = productService.searchProducts(search, category, minPrice, maxPrice, maxCarbon);
-        }
+        Page<Product> productPage = productService.searchProducts(
+                search, category, minPrice, maxPrice, maxCarbon, sortBy, page, size, featured
+        );
 
-        return ResponseEntity.ok(products.stream()
+        Map<String, Object> response = new HashMap<>();
+        response.put("products", productPage.getContent().stream()
                 .map(this::toProductDTO)
                 .collect(Collectors.toList()));
+        response.put("currentPage", productPage.getNumber());
+        response.put("totalPages", productPage.getTotalPages());
+        response.put("totalItems", productPage.getTotalElements());
+        response.put("hasNext", productPage.hasNext());
+        response.put("hasPrevious", productPage.hasPrevious());
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Map<String, Object>> getProduct(@PathVariable Long id) {
         Product product = productService.getProductById(id);
+        productService.incrementProductView(id);
         return ResponseEntity.ok(toProductDTO(product));
+    }
+
+    @GetMapping("/featured")
+    public ResponseEntity<List<Map<String, Object>>> getFeaturedProducts() {
+        List<Product> products = productService.getFeaturedProducts();
+        return ResponseEntity.ok(products.stream()
+                .map(this::toProductDTO)
+                .collect(Collectors.toList()));
+    }
+
+    @GetMapping("/trending")
+    public ResponseEntity<List<Map<String, Object>>> getTrendingProducts() {
+        List<Product> products = productService.getTrendingProducts();
+        return ResponseEntity.ok(products.stream()
+                .map(this::toProductDTO)
+                .collect(Collectors.toList()));
     }
 
     @PostMapping("/add")
@@ -54,8 +85,7 @@ public class ProductController {
             Double price = Double.valueOf(request.get("price").toString());
             Integer quantity = Integer.valueOf(request.getOrDefault("quantity", 1).toString());
             String category = request.get("category").toString();
-            String imageUrl = request.getOrDefault("imageUrl", "").toString();
-            String imagePath = request.getOrDefault("imagePath", "").toString();
+            String images = request.getOrDefault("images", "").toString();
 
             ProductCarbonData carbonData = new ProductCarbonData();
             carbonData.setManufacturing(Double.valueOf(request.getOrDefault("manufacturing", 0.0).toString()));
@@ -64,10 +94,26 @@ public class ProductController {
             carbonData.setUsage(Double.valueOf(request.getOrDefault("usage", 0.0).toString()));
             carbonData.setDisposal(Double.valueOf(request.getOrDefault("disposal", 0.0).toString()));
 
-            Product product = productService.createProduct(userId, name, description, price, quantity,
-                    category, imageUrl, imagePath, carbonData);
+            Product product = productService.createProduct(userId, name, description, price,
+                    quantity, category, images, carbonData);
 
             return ResponseEntity.ok(toProductDTO(product));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{id}/images")
+    public ResponseEntity<?> uploadProductImages(
+            @PathVariable Long id,
+            @RequestParam("files") MultipartFile[] files
+    ) {
+        try {
+            List<String> imageNames = productService.addProductImages(id, files);
+            return ResponseEntity.ok(Map.of(
+                    "message", "Images uploaded successfully",
+                    "images", imageNames
+            ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -82,8 +128,7 @@ public class ProductController {
             Double price = Double.valueOf(request.get("price").toString());
             Integer quantity = Integer.valueOf(request.getOrDefault("quantity", 1).toString());
             String category = request.get("category").toString();
-            String imageUrl = request.getOrDefault("imageUrl", "").toString();
-            String imagePath = request.getOrDefault("imagePath", "").toString();
+            String images = request.getOrDefault("images", "").toString();
 
             ProductCarbonData carbonData = new ProductCarbonData();
             carbonData.setManufacturing(Double.valueOf(request.getOrDefault("manufacturing", 0.0).toString()));
@@ -92,8 +137,8 @@ public class ProductController {
             carbonData.setUsage(Double.valueOf(request.getOrDefault("usage", 0.0).toString()));
             carbonData.setDisposal(Double.valueOf(request.getOrDefault("disposal", 0.0).toString()));
 
-            Product product = productService.updateProduct(userId, id, name, description, price, quantity,
-                    category, imageUrl, imagePath, carbonData);
+            Product product = productService.updateProduct(userId, id, name, description,
+                    price, quantity, category, images, carbonData);
 
             return ResponseEntity.ok(toProductDTO(product));
         } catch (Exception e) {
@@ -108,6 +153,16 @@ public class ProductController {
             return ResponseEntity.ok(Map.of("message", "Product deleted successfully"));
         } catch (Exception e) {
             return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}/feature")
+    public ResponseEntity<?> toggleFeatured(@PathVariable Long id, @RequestParam Long adminId) {
+        try {
+            productService.toggleFeatured(adminId, id);
+            return ResponseEntity.ok(Map.of("message", "Product featured status updated"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -144,20 +199,20 @@ public class ProductController {
         dto.put("description", product.getDescription());
         dto.put("price", product.getPrice());
         dto.put("quantity", product.getQuantity());
-
-        // Prefer served image path over generic URL if available
-        if (product.getImagePath() != null && !product.getImagePath().isEmpty()) {
-            dto.put("imageUrl", "/api/images/" + product.getImagePath());
-        } else {
-            dto.put("imageUrl", product.getImageUrl());
-        }
-
+        dto.put("images", product.getImageArray());
+        dto.put("primaryImage", product.getPrimaryImage());
         dto.put("category", product.getCategory());
         dto.put("carbonFootprint", product.getTotalCarbonFootprint());
         dto.put("ecoRating", product.getEcoRating());
         dto.put("verified", product.isVerified());
+        dto.put("featured", product.isFeatured());
         dto.put("sellerId", product.getSeller().getId());
         dto.put("sellerName", product.getSeller().getFullName());
+        dto.put("viewCount", product.getViewCount());
+        dto.put("soldCount", product.getSoldCount());
+        dto.put("averageRating", product.getAverageRating());
+        dto.put("reviewCount", product.getReviewCount());
+        dto.put("createdAt", product.getCreatedAt());
 
         if (product.getCarbonData() != null) {
             Map<String, Double> breakdown = new HashMap<>();

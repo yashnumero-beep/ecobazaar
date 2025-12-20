@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
@@ -25,40 +24,93 @@ public class ImageController {
     @Value("${file.upload-dir}")
     private String uploadDir;
 
-    @PostMapping("/upload")
-    public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) {
+    /**
+     * Upload product image
+     */
+    @PostMapping("/products/{productId}")
+    public ResponseEntity<?> uploadProductImage(
+            @PathVariable Long productId,
+            @RequestParam("file") MultipartFile file
+    ) {
         try {
-            String fileName = imageService.saveMultipartImage(file);
+            String fileName = imageService.saveProductImage(file, productId);
+
             return ResponseEntity.ok(Map.of(
-                    "message", "Image uploaded successfully",
+                    "message", "Product image uploaded successfully",
                     "fileName", fileName,
                     "url", "/api/images/" + fileName
             ));
-        } catch (IOException e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Failed to upload image"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", e.getMessage()
+            ));
         }
     }
 
-    @GetMapping("/{filename:.+}")
-    public ResponseEntity<Resource> getImage(@PathVariable String filename) {
+    /**
+     * Upload category icon
+     */
+    @PostMapping("/categories")
+    public ResponseEntity<?> uploadCategoryIcon(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("categoryName") String categoryName
+    ) {
         try {
-            Path path = Paths.get(uploadDir).resolve(filename).normalize();
+            String fileName = imageService.saveCategoryIcon(file, categoryName);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Category icon uploaded successfully",
+                    "fileName", fileName,
+                    "url", "/api/images/" + fileName
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Serve image
+     */
+    @GetMapping("/{fileName:.+}")
+    public ResponseEntity<Resource> getImage(@PathVariable String fileName) {
+        try {
+            Path path = Paths.get(uploadDir).resolve(fileName).normalize();
             Resource resource = new UrlResource(path.toUri());
 
-            if (resource.exists() || resource.isReadable()) {
-                // Determine content type (default to JPEG if unknown)
-                String contentType = "image/jpeg";
-                if (filename.toLowerCase().endsWith(".png")) contentType = "image/png";
-                else if (filename.toLowerCase().endsWith(".gif")) contentType = "image/gif";
-
-                return ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(contentType))
-                        .body(resource);
-            } else {
+            if (!resource.exists() || !resource.isReadable()) {
                 return ResponseEntity.notFound().build();
             }
+
+            String contentType = "image/jpeg";
+            if (fileName.endsWith(".png")) contentType = "image/png";
+            else if (fileName.endsWith(".gif")) contentType = "image/gif";
+            else if (fileName.endsWith(".webp")) contentType = "image/webp";
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .body(resource);
+
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Delete image
+     */
+    @DeleteMapping("/{fileName}")
+    public ResponseEntity<?> deleteImage(@PathVariable String fileName) {
+        try {
+            imageService.deleteImage(fileName);
+            return ResponseEntity.ok(Map.of(
+                    "message", "Image deleted successfully"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", e.getMessage()
+            ));
         }
     }
 }
