@@ -34,10 +34,9 @@ public class Product {
     @Column(nullable = false)
     private Integer quantity = 1;
 
-    // Simplified: Store image filenames as comma-separated string
-    // Format: "image1.jpg,image2.jpg,image3.jpg"
-    @Column(length = 1000)
-    private String images = "";
+    // Store Base64 encoded image directly in database
+    @Column(columnDefinition = "TEXT")
+    private String imageBase64;
 
     @Column(nullable = false)
     private String category;
@@ -55,7 +54,6 @@ public class Product {
     @Column(nullable = false)
     private boolean featured = false;
 
-    // New fields for enhanced e-commerce
     @Column(nullable = false)
     private Integer viewCount = 0;
 
@@ -80,28 +78,18 @@ public class Product {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    // Helper method to get primary image
+    // Helper method to get image for display
     @Transient
-    public String getPrimaryImage() {
-        if (images == null || images.isEmpty()) {
-            return "/api/images/default-product.jpg";
+    public String getImageUrl() {
+        if (imageBase64 == null || imageBase64.isEmpty()) {
+            return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23f0f0f0' width='300' height='300'/%3E%3Ctext fill='%23999' x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='Arial' font-size='18'%3ENo Image%3C/text%3E%3C/svg%3E";
         }
-        String[] imageArray = images.split(",");
-        return "/api/images/" + imageArray[0];
-    }
-
-    // Helper method to get all images as array
-    @Transient
-    public String[] getImageArray() {
-        if (images == null || images.isEmpty()) {
-            return new String[]{"/api/images/default-product.jpg"};
+        // If it already has data URI prefix, return as is
+        if (imageBase64.startsWith("data:image")) {
+            return imageBase64;
         }
-        String[] imageArray = images.split(",");
-        String[] fullPaths = new String[imageArray.length];
-        for (int i = 0; i < imageArray.length; i++) {
-            fullPaths[i] = "/api/images/" + imageArray[i];
-        }
-        return fullPaths;
+        // Otherwise add the prefix
+        return "data:image/jpeg;base64," + imageBase64;
     }
 
     @Transient

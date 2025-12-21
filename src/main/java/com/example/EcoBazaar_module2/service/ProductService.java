@@ -11,9 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,14 +30,10 @@ public class ProductService {
     @Autowired
     private AuditService auditService;
 
-    @Autowired
-    private ImageService imageService;
-
     public Page<Product> searchProducts(String name, String category, Double minPrice,
                                         Double maxPrice, Double maxCarbon, String sortBy,
                                         int page, int size, Boolean featured) {
 
-        // Create pageable with sorting
         Sort sort = Sort.unsorted();
         if (sortBy != null) {
             switch (sortBy) {
@@ -48,14 +42,12 @@ public class ProductService {
                 case "rating": sort = Sort.by("averageRating").descending(); break;
                 case "popular": sort = Sort.by("soldCount").descending(); break;
                 case "newest": sort = Sort.by("createdAt").descending(); break;
-                case "carbon_asc": sort = Sort.by("carbonData.manufacturing").ascending(); break;
                 default: sort = Sort.by("createdAt").descending();
             }
         }
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        // Use repository method with specifications
         Page<Product> products = productRepository.searchProducts(
                 name,
                 (category != null && !category.equals("All")) ? category : null,
@@ -65,7 +57,6 @@ public class ProductService {
                 pageable
         );
 
-        // Filter by carbon if specified (done in memory for simplicity)
         if (maxCarbon != null) {
             List<Product> filtered = products.getContent().stream()
                     .filter(p -> p.getTotalCarbonFootprint() <= maxCarbon)
@@ -99,7 +90,7 @@ public class ProductService {
 
     @Transactional
     public Product createProduct(Long sellerId, String name, String description, Double price,
-                                 Integer quantity, String category, String images,
+                                 Integer quantity, String category, String imageBase64,
                                  ProductCarbonData carbonData) {
         User seller = userRepository.findById(sellerId)
                 .orElseThrow(() -> new RuntimeException("Seller not found"));
@@ -114,7 +105,7 @@ public class ProductService {
         product.setPrice(price);
         product.setQuantity(quantity);
         product.setCategory(category);
-        product.setImages(images);
+        product.setImageBase64(imageBase64);
         product.setSeller(seller);
         product.setActive(true);
         product.setVerified(seller.getRole() == Role.ADMIN);
@@ -135,36 +126,8 @@ public class ProductService {
     }
 
     @Transactional
-    public List<String> addProductImages(Long productId, MultipartFile[] files) {
-        Product product = getProductById(productId);
-        List<String> imageNames = new ArrayList<>();
-
-        for (MultipartFile file : files) {
-            try {
-                String fileName = imageService.saveProductImage(file, productId);
-                imageNames.add(fileName);
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to upload image: " + e.getMessage());
-            }
-        }
-
-        // Append to existing images
-        String existingImages = product.getImages();
-        String newImages = String.join(",", imageNames);
-
-        if (existingImages != null && !existingImages.isEmpty()) {
-            product.setImages(existingImages + "," + newImages);
-        } else {
-            product.setImages(newImages);
-        }
-
-        productRepository.save(product);
-        return imageNames;
-    }
-
-    @Transactional
     public Product updateProduct(Long userId, Long productId, String name, String description,
-                                 Double price, Integer quantity, String category, String images,
+                                 Double price, Integer quantity, String category, String imageBase64,
                                  ProductCarbonData newCarbonData) {
         Product product = getProductById(productId);
         User user = userRepository.findById(userId)
@@ -180,8 +143,8 @@ public class ProductService {
         product.setQuantity(quantity);
         product.setCategory(category);
 
-        if (images != null && !images.isEmpty()) {
-            product.setImages(images);
+        if (imageBase64 != null && !imageBase64.isEmpty()) {
+            product.setImageBase64(imageBase64);
         }
 
         if (newCarbonData != null) {
@@ -265,12 +228,10 @@ public class ProductService {
         if (category != null) {
             switch (category.toLowerCase()) {
                 case "electronics": base = 50.0; break;
-                case "fashion":
-                case "clothing": base = 12.0; break;
-                case "home":
-                case "furniture": base = 25.0; break;
-                case "food": base = 3.0; break;
-                case "beauty": base = 2.0; break;
+                case "clothing & apparel": base = 12.0; break;
+                case "home & kitchen": base = 25.0; break;
+                case "food & beverages": base = 3.0; break;
+                case "beauty & personal care": base = 2.0; break;
                 default: base = 5.0;
             }
         }

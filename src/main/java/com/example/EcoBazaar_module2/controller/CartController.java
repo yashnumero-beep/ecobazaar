@@ -18,9 +18,6 @@ public class CartController {
     @Autowired
     private CartService cartService;
 
-    /**
-     * Get user's cart
-     */
     @GetMapping("/{userId}")
     public ResponseEntity<Map<String, Object>> getCart(@PathVariable Long userId) {
         Cart cart = cartService.getUserCart(userId);
@@ -39,9 +36,6 @@ public class CartController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Add item to cart
-     */
     @PostMapping("/{userId}/items")
     public ResponseEntity<?> addItem(
             @PathVariable Long userId,
@@ -66,9 +60,6 @@ public class CartController {
         }
     }
 
-    /**
-     * Remove item from cart
-     */
     @DeleteMapping("/{userId}/items/{itemId}")
     public ResponseEntity<?> removeItem(
             @PathVariable Long userId,
@@ -87,9 +78,6 @@ public class CartController {
         }
     }
 
-    /**
-     * Map CartItem → API response
-     */
     private Map<String, Object> mapToCartItemDTO(CartItem item) {
         Map<String, Object> dto = new HashMap<>();
 
@@ -100,11 +88,7 @@ public class CartController {
         dto.put("productName", product.getName());
         dto.put("price", product.getPrice());
         dto.put("quantity", item.getQuantity());
-
-        // 🔥 Image handling — delegated to Product model
-        dto.put("imageUrl", product.getPrimaryImage());
-
-        // 🌱 Carbon data
+        dto.put("imageUrl", product.getImageUrl());
         dto.put("carbonFootprint", product.getTotalCarbonFootprint());
         dto.put("ecoRating", product.getEcoRating());
 

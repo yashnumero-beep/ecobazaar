@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,11 +18,6 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
-    /**
-     * GET /api/products - Advanced search with pagination and sorting
-     * Query params: search, category, minPrice, maxPrice, maxCarbon,
-     *               sortBy, page, size, featured
-     */
     @GetMapping
     public ResponseEntity<Map<String, Object>> searchProducts(
             @RequestParam(required = false) String search,
@@ -68,14 +62,6 @@ public class ProductController {
                 .collect(Collectors.toList()));
     }
 
-    @GetMapping("/trending")
-    public ResponseEntity<List<Map<String, Object>>> getTrendingProducts() {
-        List<Product> products = productService.getTrendingProducts();
-        return ResponseEntity.ok(products.stream()
-                .map(this::toProductDTO)
-                .collect(Collectors.toList()));
-    }
-
     @PostMapping("/add")
     public ResponseEntity<?> addProduct(@RequestBody Map<String, Object> request) {
         try {
@@ -85,7 +71,7 @@ public class ProductController {
             Double price = Double.valueOf(request.get("price").toString());
             Integer quantity = Integer.valueOf(request.getOrDefault("quantity", 1).toString());
             String category = request.get("category").toString();
-            String images = request.getOrDefault("images", "").toString();
+            String imageBase64 = request.getOrDefault("imageBase64", "").toString();
 
             ProductCarbonData carbonData = new ProductCarbonData();
             carbonData.setManufacturing(Double.valueOf(request.getOrDefault("manufacturing", 0.0).toString()));
@@ -95,25 +81,9 @@ public class ProductController {
             carbonData.setDisposal(Double.valueOf(request.getOrDefault("disposal", 0.0).toString()));
 
             Product product = productService.createProduct(userId, name, description, price,
-                    quantity, category, images, carbonData);
+                    quantity, category, imageBase64, carbonData);
 
             return ResponseEntity.ok(toProductDTO(product));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
-    }
-
-    @PostMapping("/{id}/images")
-    public ResponseEntity<?> uploadProductImages(
-            @PathVariable Long id,
-            @RequestParam("files") MultipartFile[] files
-    ) {
-        try {
-            List<String> imageNames = productService.addProductImages(id, files);
-            return ResponseEntity.ok(Map.of(
-                    "message", "Images uploaded successfully",
-                    "images", imageNames
-            ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -128,7 +98,7 @@ public class ProductController {
             Double price = Double.valueOf(request.get("price").toString());
             Integer quantity = Integer.valueOf(request.getOrDefault("quantity", 1).toString());
             String category = request.get("category").toString();
-            String images = request.getOrDefault("images", "").toString();
+            String imageBase64 = request.getOrDefault("imageBase64", "").toString();
 
             ProductCarbonData carbonData = new ProductCarbonData();
             carbonData.setManufacturing(Double.valueOf(request.getOrDefault("manufacturing", 0.0).toString()));
@@ -138,7 +108,7 @@ public class ProductController {
             carbonData.setDisposal(Double.valueOf(request.getOrDefault("disposal", 0.0).toString()));
 
             Product product = productService.updateProduct(userId, id, name, description,
-                    price, quantity, category, images, carbonData);
+                    price, quantity, category, imageBase64, carbonData);
 
             return ResponseEntity.ok(toProductDTO(product));
         } catch (Exception e) {
@@ -199,8 +169,7 @@ public class ProductController {
         dto.put("description", product.getDescription());
         dto.put("price", product.getPrice());
         dto.put("quantity", product.getQuantity());
-        dto.put("images", product.getImageArray());
-        dto.put("primaryImage", product.getPrimaryImage());
+        dto.put("imageUrl", product.getImageUrl());
         dto.put("category", product.getCategory());
         dto.put("carbonFootprint", product.getTotalCarbonFootprint());
         dto.put("ecoRating", product.getEcoRating());

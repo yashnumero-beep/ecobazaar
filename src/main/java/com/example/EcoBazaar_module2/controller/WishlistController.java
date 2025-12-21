@@ -26,10 +26,16 @@ public class WishlistController {
                     dto.put("id", item.getId());
                     dto.put("productId", item.getProduct().getId());
                     dto.put("productName", item.getProduct().getName());
+                    dto.put("description", item.getProduct().getDescription());
                     dto.put("price", item.getProduct().getPrice());
-                    dto.put("image", item.getProduct().getPrimaryImage());
+                    dto.put("quantity", item.getProduct().getQuantity());
+                    // Changed from getPrimaryImage() to getImageUrl()
+                    dto.put("image", item.getProduct().getImageUrl());
+                    dto.put("category", item.getProduct().getCategory());
                     dto.put("carbonFootprint", item.getProduct().getTotalCarbonFootprint());
                     dto.put("ecoRating", item.getProduct().getEcoRating());
+                    dto.put("averageRating", item.getProduct().getAverageRating());
+                    dto.put("reviewCount", item.getProduct().getReviewCount());
                     dto.put("addedAt", item.getAddedAt());
                     return dto;
                 })
