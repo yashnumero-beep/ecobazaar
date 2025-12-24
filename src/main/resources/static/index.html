@@ -383,6 +383,48 @@
             gap: 20px;
         }
 
+        /* File Upload */
+        .file-upload-container {
+            border: 2px dashed var(--light-gray);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .file-upload-container:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(46, 125, 50, 0.05);
+        }
+
+        .file-upload-container.dragover {
+            border-color: var(--primary-color);
+            background-color: rgba(46, 125, 50, 0.1);
+        }
+
+        .file-upload-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .image-preview {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
         /* Tables */
         .table-container {
             background-color: white;
@@ -710,6 +752,10 @@
     let wishlist = [];
     let userReviews = [];
 
+    // Image upload state
+    let currentImageBase64 = null;
+    let currentImageFile = null;
+
     // DOM Content Loaded
     document.addEventListener('DOMContentLoaded', function() {
         // Check if user is already logged in
@@ -966,6 +1012,17 @@
         async getAdminDashboard() {
             const response = await fetch(`${API_BASE_URL}/api/dashboard/admin`);
             return handleResponse(response);
+        },
+
+        // Carbon Analytics APIs
+        async getUserCarbonReport(userId) {
+            const response = await fetch(`${API_BASE_URL}/api/carbon/report/${userId}`);
+            return handleResponse(response);
+        },
+
+        async getPlatformCarbonSummary() {
+            const response = await fetch(`${API_BASE_URL}/api/carbon/admin/summary`);
+            return handleResponse(response);
         }
     };
 
@@ -1005,6 +1062,118 @@
                 document.body.removeChild(notification);
             }, 300);
         }, 5000);
+    }
+
+    // Image handling functions
+    function handleImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.match('image.*')) {
+            showNotification('Please select an image file', 'error');
+            return;
+        }
+
+        // Validate file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            showNotification('Image size should be less than 10MB', 'error');
+            return;
+        }
+
+        currentImageFile = file;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            currentImageBase64 = e.target.result;
+
+            // Show preview
+            const previewContainer = document.getElementById('imagePreviewContainer');
+            if (previewContainer) {
+                previewContainer.style.display = 'block';
+                const previewImg = document.getElementById('imagePreview');
+                if (previewImg) {
+                    previewImg.src = currentImageBase64;
+                }
+            }
+
+            // Store in localStorage for persistence
+            try {
+                localStorage.setItem('ecobazaar_product_image', currentImageBase64);
+                showNotification('Image uploaded successfully!', 'success');
+            } catch (error) {
+                console.error('Error storing image in localStorage:', error);
+                showNotification('Image uploaded but could not be saved locally', 'warning');
+            }
+        };
+
+        reader.onerror = function() {
+            showNotification('Error reading image file', 'error');
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+    function handleDragOver(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const container = event.target.closest('.file-upload-container');
+        if (container) {
+            container.classList.add('dragover');
+        }
+    }
+
+    function handleDragLeave(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const container = event.target.closest('.file-upload-container');
+        if (container) {
+            container.classList.remove('dragover');
+        }
+    }
+
+    function handleDrop(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const container = event.target.closest('.file-upload-container');
+        if (container) {
+            container.classList.remove('dragover');
+        }
+
+        const files = event.dataTransfer.files;
+        if (files.length > 0) {
+            // Simulate file input change
+            const fileInput = document.getElementById('productImageFile');
+            if (fileInput) {
+                // Create a new DataTransfer object
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(files[0]);
+                fileInput.files = dataTransfer.files;
+
+                // Trigger change event
+                const changeEvent = new Event('change', { bubbles: true });
+                fileInput.dispatchEvent(changeEvent);
+            }
+        }
+    }
+
+    function clearImage() {
+        currentImageBase64 = null;
+        currentImageFile = null;
+        localStorage.removeItem('ecobazaar_product_image');
+
+        const previewContainer = document.getElementById('imagePreviewContainer');
+        if (previewContainer) {
+            previewContainer.style.display = 'none';
+        }
+
+        const fileInput = document.getElementById('productImageFile');
+        if (fileInput) {
+            fileInput.value = '';
+        }
+
+        showNotification('Image cleared', 'info');
     }
 
     // Load categories from API
@@ -1152,6 +1321,9 @@
                 case 'seller-products':
                     html = await renderSellerProducts();
                     break;
+                case 'seller-orders':
+                    html = await renderSellerOrders();
+                    break;
                 case 'add-product':
                     html = renderAddProductForm();
                     break;
@@ -1273,6 +1445,7 @@
     function logout() {
         currentUser = null;
         localStorage.removeItem('ecobazaar_user');
+        localStorage.removeItem('ecobazaar_product_image');
         updateUIForUser();
         loadView('login');
         showNotification('Logged out successfully.', 'info');
@@ -1293,10 +1466,26 @@
         document.getElementById('productFormTitle').textContent = title;
         document.getElementById('productFormBody').innerHTML = content;
         document.getElementById('productFormModal').classList.add('active');
+
+        // Load saved image from localStorage if exists
+        const savedImage = localStorage.getItem('ecobazaar_product_image');
+        if (savedImage) {
+            currentImageBase64 = savedImage;
+            const previewContainer = document.getElementById('imagePreviewContainer');
+            if (previewContainer) {
+                previewContainer.style.display = 'block';
+                const previewImg = document.getElementById('imagePreview');
+                if (previewImg) {
+                    previewImg.src = savedImage;
+                }
+            }
+        }
     }
 
     function closeProductFormModal() {
         document.getElementById('productFormModal').classList.remove('active');
+        // Don't clear image from localStorage when closing modal
+        // It will persist for the session
     }
 
     function openCheckoutModal() {
@@ -1513,235 +1702,1379 @@
         `;
     }
 
-    async function renderProducts(params = {}) {
-        const { category, search } = params;
-        let productsData = { products: [] };
+    async function renderSellerProducts() {
+        if (!currentUser || (currentUser.role !== 'SELLER' && currentUser.role !== 'ADMIN')) {
+            return `<div class="card"><p>Access denied. Only sellers and admins can view seller products.</p></div>`;
+        }
 
+        let sellerProducts = [];
         try {
-            const queryParams = {};
-            if (category) queryParams.category = category;
-            if (search) queryParams.search = search;
-
-            productsData = await apiService.getProducts(queryParams);
-            products = productsData.products || [];
+            sellerProducts = await apiService.getSellerProducts(currentUser.id);
         } catch (error) {
-            console.error('Error loading products:', error);
+            console.error('Error loading seller products:', error);
+            return `
+                <div class="card">
+                    <h3><i class="fas fa-boxes"></i> My Products</h3>
+                    <p>Error loading products: ${error.message}</p>
+                    <button onclick="loadView('seller-products')" class="btn mt-2">
+                        <i class="fas fa-redo"></i> Retry
+                    </button>
+                </div>
+            `;
         }
 
         return `
             <div class="flex justify-between items-center mb-3">
-                <h2>Eco Products</h2>
-                <div class="flex gap-2">
-                    <input type="text" id="productSearch" class="form-control" placeholder="Search products..." value="${search || ''}"
-                           onkeyup="if(event.key === 'Enter') searchProducts()">
-                    <button onclick="searchProducts()" class="btn">
-                        <i class="fas fa-search"></i> Search
-                    </button>
-                </div>
-            </div>
-
-            <div class="flex gap-2 mb-3">
-                <button onclick="loadView('products')" class="btn-outline ${!category ? 'active' : ''}">
-                    All Categories
+                <h2><i class="fas fa-boxes"></i> My Products</h2>
+                <button onclick="loadView('add-product')" class="btn">
+                    <i class="fas fa-plus"></i> Add New Product
                 </button>
-                ${categories.slice(0, 6).map(cat => `
-                    <button onclick="loadView('products', {category: '${cat.name}'})"
-                            class="btn-outline ${category === cat.name ? 'active' : ''}">
-                        ${cat.name}
-                    </button>
-                `).join('')}
             </div>
 
-            ${products.length > 0 ? `
-                <div class="products-grid">
-                    ${products.map(product => `
-                        <div class="product-card">
-                            <div class="product-image">
-                                ${product.imageUrl ?
-                                    `<img src="${product.imageUrl}" alt="${product.name}">` :
-                                    `<i class="fas fa-leaf" style="font-size: 3rem; color: var(--primary-color);"></i>`
-                                }
-                                ${product.featured ? `
-                                    <div style="position: absolute; top: 10px; right: 10px; background: var(--secondary-color); color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem;">
-                                        <i class="fas fa-star"></i> Featured
-                                    </div>
-                                ` : ''}
-                            </div>
-                            <div class="product-details">
-                                <h3 class="product-name">${product.name}</h3>
-                                <div class="product-price">$${product.price.toFixed(2)}</div>
-                                <div class="product-meta">
-                                    <span>${product.category}</span>
-                                    <span><i class="fas fa-eye"></i> ${product.viewCount || 0}</span>
-                                </div>
-                                <div class="carbon-badge carbon-${product.ecoRating ? product.ecoRating.toLowerCase() : 'b'}">
-                                    <i class="fas fa-cloud"></i> ${product.carbonFootprint} kg CO2e | ${product.ecoRating || 'B'}
-                                </div>
-                                <div class="flex gap-1 mt-2">
-                                    <button onclick="viewProduct(${product.id})" class="btn" style="flex: 1;">
-                                        <i class="fas fa-eye"></i> Details
-                                    </button>
-                                    ${currentUser && currentUser.role === 'USER' ? `
-                                        <button onclick="addToCart(${product.id})" class="btn-secondary">
-                                            <i class="fas fa-cart-plus"></i>
-                                        </button>
-                                    ` : ''}
-                                </div>
-                            </div>
-                        </div>
-                    `).join('')}
+            ${sellerProducts.length > 0 ? `
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Carbon</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${sellerProducts.map(product => `
+                                <tr>
+                                    <td>
+                                        <div style="width: 60px; height: 60px; background: #f5f5f5; border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                            ${product.imageUrl ?
+                                                `<img src="${product.imageUrl}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;">` :
+                                                `<i class="fas fa-leaf" style="color: var(--primary-color);"></i>`
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div><strong>${product.name}</strong></div>
+                                        <div style="font-size: 0.9rem; color: var(--gray-color);">${product.description.substring(0, 50)}${product.description.length > 50 ? '...' : ''}</div>
+                                    </td>
+                                    <td>${product.category}</td>
+                                    <td>$${product.price.toFixed(2)}</td>
+                                    <td>${product.quantity}</td>
+                                    <td>
+                                        <div class="carbon-badge carbon-${product.ecoRating ? product.ecoRating.toLowerCase() : 'b'}">
+                                            <i class="fas fa-cloud"></i> ${product.carbonFootprint} kg
+                                        </div>
+                                    </td>
+                                    <td>
+                                        ${product.verified ?
+                                            `<span style="color: var(--success-color);"><i class="fas fa-check-circle"></i> Verified</span>` :
+                                            `<span style="color: var(--warning-color);"><i class="fas fa-clock"></i> Pending</span>`
+                                        }
+                                        ${product.featured ? `<br><small style="color: var(--secondary-color);"><i class="fas fa-star"></i> Featured</small>` : ''}
+                                    </td>
+                                    <td>
+                                        <div class="flex gap-1">
+                                            <button onclick="viewProduct(${product.id})" class="btn" style="padding: 5px 10px; font-size: 0.9rem;">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button onclick="loadView('edit-product', {id: ${product.id}})" class="btn-secondary" style="padding: 5px 10px; font-size: 0.9rem;">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button onclick="deleteSellerProduct(${product.id})" class="btn-danger" style="padding: 5px 10px; font-size: 0.9rem;">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
                 </div>
 
-                ${productsData.totalPages > 1 ? `
-                    <div class="flex justify-center gap-2 mt-3">
-                        <button onclick="loadProductsPage(${productsData.currentPage - 1})"
-                                class="btn-outline ${!productsData.hasPrevious ? 'hidden' : ''}">
-                            <i class="fas fa-chevron-left"></i> Previous
-                        </button>
-                        <span class="flex items-center">Page ${productsData.currentPage + 1} of ${productsData.totalPages}</span>
-                        <button onclick="loadProductsPage(${productsData.currentPage + 1})"
-                                class="btn-outline ${!productsData.hasNext ? 'hidden' : ''}">
-                            Next <i class="fas fa-chevron-right"></i>
-                        </button>
+                <div class="card mt-3">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3>Product Summary</h3>
+                            <p>Total Products: ${sellerProducts.length}</p>
+                            <p>Verified Products: ${sellerProducts.filter(p => p.verified).length}</p>
+                            <p>Featured Products: ${sellerProducts.filter(p => p.featured).length}</p>
+                        </div>
+                        <div>
+                            <p>Total Stock Value: $${sellerProducts.reduce((sum, p) => sum + (p.price * p.quantity), 0).toFixed(2)}</p>
+                            <p>Average Carbon Footprint: ${(sellerProducts.reduce((sum, p) => sum + p.carbonFootprint, 0) / sellerProducts.length).toFixed(2)} kg</p>
+                        </div>
                     </div>
-                ` : ''}
+                </div>
             ` : `
-                <div class="card">
-                    <h3>No products found</h3>
-                    <p>${search ? `No products match your search "${search}"` : 'No products available in this category'}</p>
-                    <button onclick="loadView('products')" class="btn mt-2">
-                        <i class="fas fa-store"></i> Browse All Products
+                <div class="card text-center">
+                    <h3>No Products Yet</h3>
+                    <p>You haven't added any products to your store yet.</p>
+                    <button onclick="loadView('add-product')" class="btn mt-2">
+                        <i class="fas fa-plus"></i> Add Your First Product
                     </button>
                 </div>
             `}
         `;
     }
 
-    async function viewProduct(productId) {
-        try {
-            const product = await apiService.getProductById(productId);
+    async function deleteSellerProduct(productId) {
+        if (!confirm('Are you sure you want to delete this product?')) {
+            return;
+        }
 
-            const content = `
-                <div class="form-row">
-                    <div style="flex: 1;">
-                        <div class="product-image" style="height: 300px;">
-                            ${product.imageUrl ?
-                                `<img src="${product.imageUrl}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: contain;">` :
-                                `<i class="fas fa-leaf" style="font-size: 5rem; color: var(--primary-color);"></i>`
-                            }
+        try {
+            await apiService.deleteProduct(productId);
+            showNotification('Product deleted successfully!', 'success');
+            loadView('seller-products');
+        } catch (error) {
+            showNotification(`Error deleting product: ${error.message}`, 'error');
+        }
+    }
+
+    async function renderSellerOrders() {
+        if (!currentUser || currentUser.role !== 'SELLER') {
+            return `<div class="card"><p>Access denied. Only sellers can view sales.</p></div>`;
+        }
+
+        try {
+            const dashboard = await apiService.getSellerDashboard(currentUser.id);
+            return `
+                <h2><i class="fas fa-chart-line"></i> Seller Dashboard</h2>
+
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <h3><i class="fas fa-chart-bar"></i> Sales Overview</h3>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-value">${dashboard.stats?.totalProducts || 0}</div>
+                                <div class="stat-label">Total Products</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">${dashboard.stats?.activeProducts || 0}</div>
+                                <div class="stat-label">Active Products</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">${dashboard.stats?.totalSales || 0}</div>
+                                <div class="stat-label">Total Sales</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">$${dashboard.stats?.totalRevenue?.toFixed(2) || '0.00'}</div>
+                                <div class="stat-label">Total Revenue</div>
+                            </div>
                         </div>
                     </div>
-                    <div style="flex: 2;">
-                        <h2>${product.name}</h2>
-                        <div class="product-price" style="font-size: 1.8rem;">$${product.price.toFixed(2)}</div>
 
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="carbon-badge carbon-${product.ecoRating ? product.ecoRating.toLowerCase() : 'b'}" style="font-size: 1rem;">
-                                <i class="fas fa-cloud"></i> ${product.carbonFootprint} kg CO2e | ${product.ecoRating || 'B'}
-                            </span>
-                            ${product.verified ? `
-                                <span style="background: var(--success-color); color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.9rem;">
-                                    <i class="fas fa-check-circle"></i> Verified
-                                </span>
-                            ` : ''}
-                        </div>
-
-                        <p>${product.description}</p>
-
-                        <div class="product-meta">
-                            <div><strong>Category:</strong> ${product.category}</div>
-                            <div><strong>Seller:</strong> ${product.sellerName || 'Unknown'}</div>
-                            <div><strong>Stock:</strong> ${product.quantity} available</div>
-                            <div><strong>Rating:</strong> ${product.averageRating || 'No ratings yet'}</div>
-                        </div>
-
-                        ${currentUser && currentUser.role === 'USER' ? `
-                            <div class="flex gap-2 mt-3">
-                                <button onclick="addToCart(${product.id})" class="btn" style="flex: 1;">
-                                    <i class="fas fa-cart-plus"></i> Add to Cart
-                                </button>
-                                <button onclick="addToWishlist(${product.id})" class="btn-outline">
-                                    <i class="fas fa-heart"></i> Wishlist
-                                </button>
+                    <div class="card">
+                        <h3><i class="fas fa-dollar-sign"></i> Revenue Breakdown</h3>
+                        ${dashboard.revenueBreakdown ? `
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <div class="stat-value">$${dashboard.revenueBreakdown.todayRevenue?.toFixed(2) || '0.00'}</div>
+                                    <div class="stat-label">Today</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">$${dashboard.revenueBreakdown.weekRevenue?.toFixed(2) || '0.00'}</div>
+                                    <div class="stat-label">This Week</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">$${dashboard.revenueBreakdown.monthRevenue?.toFixed(2) || '0.00'}</div>
+                                    <div class="stat-label">This Month</div>
+                                </div>
                             </div>
-                        ` : ''}
-
-                        ${currentUser && (currentUser.role === 'ADMIN' || (currentUser.role === 'SELLER' && currentUser.id === product.sellerId)) ? `
-                            <div class="flex gap-2 mt-3">
-                                <button onclick="loadView('edit-product', {id: ${product.id}})" class="btn">
-                                    <i class="fas fa-edit"></i> Edit Product
-                                </button>
-                                ${currentUser.role === 'ADMIN' ? `
-                                    <button onclick="toggleFeatured(${product.id})" class="btn-secondary">
-                                        <i class="fas fa-star"></i> ${product.featured ? 'Unfeature' : 'Feature'}
-                                    </button>
-                                    ${!product.verified ? `
-                                        <button onclick="verifyProduct(${product.id})" class="btn">
-                                            <i class="fas fa-check-circle"></i> Verify
-                                        </button>
-                                    ` : ''}
-                                ` : ''}
-                            </div>
-                        ` : ''}
+                        ` : '<p>No revenue data available</p>'}
                     </div>
                 </div>
 
-                <div class="mt-3">
-                    <h3>Carbon Breakdown</h3>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-label">Manufacturing</div>
-                            <div class="stat-value">${product.carbonBreakdown?.manufacturing || 0}</div>
+                ${dashboard.topProducts && dashboard.topProducts.length > 0 ? `
+                    <div class="card mt-3">
+                        <h3><i class="fas fa-trophy"></i> Top Products</h3>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Units Sold</th>
+                                        <th>Revenue</th>
+                                        <th>Carbon Impact</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${dashboard.topProducts.map(product => `
+                                        <tr>
+                                            <td>
+                                                <div class="flex items-center gap-2">
+                                                    <div style="width: 40px; height: 40px; background: #f5f5f5; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                                        ${product.image ? `<img src="${product.image}" alt="${product.productName}" style="width: 100%; height: 100%; object-fit: cover;">` : '<i class="fas fa-leaf"></i>'}
+                                                    </div>
+                                                    <div>${product.productName}</div>
+                                                </div>
+                                            </td>
+                                            <td>${product.unitsSold}</td>
+                                            <td>$${product.revenue?.toFixed(2)}</td>
+                                            <td>
+                                                <div class="carbon-badge carbon-${product.ecoRating ? product.ecoRating.toLowerCase() : 'b'}">
+                                                    ${product.carbonFootprint} kg
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Transportation</div>
-                            <div class="stat-value">${product.carbonBreakdown?.transportation || 0}</div>
+                    </div>
+                ` : ''}
+
+                ${dashboard.salesByCategory ? `
+                    <div class="card mt-3">
+                        <h3><i class="fas fa-chart-pie"></i> Sales by Category</h3>
+                        <div class="stats-grid">
+                            ${Object.entries(dashboard.salesByCategory).map(([category, amount]) => `
+                                <div class="stat-item">
+                                    <div class="stat-value">$${amount.toFixed(2)}</div>
+                                    <div class="stat-label">${category}</div>
+                                </div>
+                            `).join('')}
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Packaging</div>
-                            <div class="stat-value">${product.carbonBreakdown?.packaging || 0}</div>
+                    </div>
+                ` : ''}
+
+                ${dashboard.recentOrders && dashboard.recentOrders.length > 0 ? `
+                    <div class="card mt-3">
+                        <h3><i class="fas fa-history"></i> Recent Orders</h3>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Date</th>
+                                        <th>Items</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${dashboard.recentOrders.map(order => `
+                                        <tr>
+                                            <td>#${order.orderId}</td>
+                                            <td>${new Date(order.orderDate).toLocaleDateString()}</td>
+                                            <td>${order.itemCount}</td>
+                                            <td>$${order.totalAmount?.toFixed(2)}</td>
+                                            <td>
+                                                <span class="status-badge status-${order.status?.toLowerCase()}">
+                                                    ${order.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Disposal</div>
-                            <div class="stat-value">${product.carbonBreakdown?.disposal || 0}</div>
+                    </div>
+                ` : ''}
+            `;
+        } catch (error) {
+            return `
+                <div class="card">
+                    <h3><i class="fas fa-chart-line"></i> Seller Dashboard</h3>
+                    <p>Error loading dashboard: ${error.message}</p>
+                    <button onclick="loadView('seller-orders')" class="btn mt-2">
+                        <i class="fas fa-redo"></i> Retry
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    async function renderSellerDashboard() {
+        if (!currentUser || currentUser.role !== 'SELLER') {
+            return `<div class="card"><p>Access denied. Only sellers can view seller dashboard.</p></div>`;
+        }
+
+        try {
+            const dashboard = await apiService.getSellerDashboard(currentUser.id);
+            return `
+                <h2><i class="fas fa-chart-line"></i> Seller Dashboard</h2>
+
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <h3><i class="fas fa-chart-bar"></i> Business Overview</h3>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-value">${dashboard.stats?.totalProducts || 0}</div>
+                                <div class="stat-label">Total Products</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">${dashboard.stats?.activeProducts || 0}</div>
+                                <div class="stat-label">Active Products</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">${dashboard.stats?.totalSales || 0}</div>
+                                <div class="stat-label">Total Sales</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">$${dashboard.stats?.totalRevenue?.toFixed(2) || '0.00'}</div>
+                                <div class="stat-label">Total Revenue</div>
+                            </div>
                         </div>
+                    </div>
+
+                    <div class="card">
+                        <h3><i class="fas fa-leaf"></i> Carbon Impact</h3>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-value">${dashboard.stats?.averageCarbonPerProduct?.toFixed(2) || '0.00'}</div>
+                                <div class="stat-label">Avg Carbon/Product</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">${dashboard.stats?.verifiedProducts || 0}</div>
+                                <div class="stat-label">Verified Products</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-3">
+                    ${dashboard.topProducts && dashboard.topProducts.length > 0 ? `
+                        <div class="card" style="flex: 1;">
+                            <h3><i class="fas fa-trophy"></i> Top Products</h3>
+                            <div style="max-height: 300px; overflow-y: auto;">
+                                ${dashboard.topProducts.map(product => `
+                                    <div class="flex items-center gap-2 mb-2 p-2" style="background: #f9f9f9; border-radius: var(--border-radius);">
+                                        <div style="width: 40px; height: 40px; background: #f5f5f5; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                            ${product.image ? `<img src="${product.image}" alt="${product.productName}" style="width: 100%; height: 100%; object-fit: cover;">` : '<i class="fas fa-leaf"></i>'}
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div><strong>${product.productName}</strong></div>
+                                            <div style="font-size: 0.9rem;">Sold: ${product.unitsSold} | Revenue: $${product.revenue?.toFixed(2)}</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    ${dashboard.salesByCategory ? `
+                        <div class="card" style="flex: 1;">
+                            <h3><i class="fas fa-chart-pie"></i> Sales by Category</h3>
+                            <div style="max-height: 300px; overflow-y: auto;">
+                                ${Object.entries(dashboard.salesByCategory).map(([category, amount]) => `
+                                    <div class="flex justify-between items-center mb-2 p-2" style="background: #f9f9f9; border-radius: var(--border-radius);">
+                                        <div>${category}</div>
+                                        <div><strong>$${amount.toFixed(2)}</strong></div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <div class="card mt-3">
+                    <h3><i class="fas fa-rocket"></i> Quick Actions</h3>
+                    <div class="flex gap-2">
+                        <button onclick="loadView('add-product')" class="btn">
+                            <i class="fas fa-plus"></i> Add Product
+                        </button>
+                        <button onclick="loadView('seller-products')" class="btn-outline">
+                            <i class="fas fa-boxes"></i> Manage Products
+                        </button>
+                        <button onclick="loadView('seller-orders')" class="btn-outline">
+                            <i class="fas fa-receipt"></i> View Sales
+                        </button>
                     </div>
                 </div>
             `;
-
-            openModal(product.name, content);
         } catch (error) {
-            showNotification(`Error loading product: ${error.message}`, 'error');
+            return `
+                <div class="card">
+                    <h3><i class="fas fa-chart-line"></i> Seller Dashboard</h3>
+                    <p>Error loading dashboard: ${error.message}</p>
+                    <button onclick="loadView('seller-dashboard')" class="btn mt-2">
+                        <i class="fas fa-redo"></i> Retry
+                    </button>
+                </div>
+            `;
         }
     }
 
-    async function addToCart(productId) {
+    function renderAddProductForm() {
+        if (!currentUser || (currentUser.role !== 'SELLER' && currentUser.role !== 'ADMIN')) {
+            return `<div class="card"><p>Access denied. Only sellers and admins can add products.</p></div>`;
+        }
+
+        return `
+            <div class="form-container">
+                <h2>Add New Product</h2>
+                <form id="productForm" onsubmit="submitProductForm(event)">
+                    <div class="form-group">
+                        <label for="product-name">Product Name *</label>
+                        <input type="text" id="product-name" class="form-control" required maxlength="500">
+                        <small class="text-gray">Max 500 characters</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="product-description">Description *</label>
+                        <textarea id="product-description" class="form-control" required></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="product-price">Price ($) *</label>
+                            <input type="number" id="product-price" class="form-control" min="0.01" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="product-quantity">Quantity *</label>
+                            <input type="number" id="product-quantity" class="form-control" min="1" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="product-category">Category *</label>
+                        <select id="product-category" class="form-control" required>
+                            <option value="">Select category</option>
+                            ${categories.map(cat => `
+                                <option value="${cat.name}">${cat.name}</option>
+                            `).join('')}
+                        </select>
+                        <small class="text-gray">Max 100 characters</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Product Image</label>
+                        <div class="file-upload-container"
+                             ondragover="handleDragOver(event)"
+                             ondragleave="handleDragLeave(event)"
+                             ondrop="handleDrop(event)"
+                             onclick="document.getElementById('productImageFile').click()">
+                            <div class="file-upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <p>Drag & drop an image here or click to browse</p>
+                            <p><small>Supported formats: JPG, PNG, GIF (Max 10MB)</small></p>
+                            <input type="file" id="productImageFile" class="file-input" accept="image/*" onchange="handleImageUpload(event)">
+                        </div>
+
+                        <div id="imagePreviewContainer" class="image-preview" style="display: none;">
+                            <p>Image Preview:</p>
+                            <img id="imagePreview" alt="Product image preview">
+                            <div class="flex gap-2 mt-2">
+                                <button type="button" onclick="clearImage()" class="btn-danger">
+                                    <i class="fas fa-trash"></i> Remove Image
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3>Carbon Footprint (kg CO2e)</h3>
+                    <p class="mb-2"><small>Leave all fields as 0 for auto-calculation based on category</small></p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="carbon-manufacturing">Manufacturing</label>
+                            <input type="number" id="carbon-manufacturing" class="form-control" min="0" step="0.1" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="carbon-transportation">Transportation</label>
+                            <input type="number" id="carbon-transportation" class="form-control" min="0" step="0.1" value="0">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="carbon-packaging">Packaging</label>
+                            <input type="number" id="carbon-packaging" class="form-control" min="0" step="0.1" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="carbon-disposal">Disposal</label>
+                            <input type="number" id="carbon-disposal" class="form-control" min="0" step="0.1" value="0">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <button type="submit" class="btn" style="width: 100%;">
+                            <i class="fas fa-plus-circle"></i> Add Product
+                        </button>
+                    </div>
+                </form>
+            </div>
+        `;
+    }
+
+    async function submitProductForm(event) {
+        event.preventDefault();
+
+        if (!currentImageBase64) {
+            const useDefault = confirm('No image selected. Use default eco icon?');
+            if (!useDefault) {
+                showNotification('Please select an image or confirm to use default icon', 'warning');
+                return;
+            }
+        }
+
+        const productData = {
+            userId: currentUser.id,
+            name: document.getElementById('product-name').value,
+            description: document.getElementById('product-description').value,
+            price: parseFloat(document.getElementById('product-price').value),
+            quantity: parseInt(document.getElementById('product-quantity').value),
+            category: document.getElementById('product-category').value,
+            imageBase64: currentImageBase64 || '',
+            manufacturing: parseFloat(document.getElementById('carbon-manufacturing').value) || 0,
+            transportation: parseFloat(document.getElementById('carbon-transportation').value) || 0,
+            packaging: parseFloat(document.getElementById('carbon-packaging').value) || 0,
+            usage: 0,
+            disposal: parseFloat(document.getElementById('carbon-disposal').value) || 0
+        };
+
+        // Validate name length (500 chars max)
+        if (productData.name.length > 500) {
+            showNotification('Product name must be 500 characters or less', 'error');
+            return;
+        }
+
+        // Validate category length (100 chars max)
+        if (productData.category.length > 100) {
+            showNotification('Category must be 100 characters or less', 'error');
+            return;
+        }
+
+        try {
+            await apiService.addProduct(productData);
+            showNotification('Product added successfully!', 'success');
+
+            // Clear image from localStorage after successful submission
+            localStorage.removeItem('ecobazaar_product_image');
+            currentImageBase64 = null;
+            currentImageFile = null;
+
+            loadView(currentUser.role === 'SELLER' ? 'seller-products' : 'products');
+        } catch (error) {
+            showNotification(`Error adding product: ${error.message}`, 'error');
+        }
+    }
+
+    async function renderEditProductForm(productId) {
+        if (!currentUser || (currentUser.role !== 'SELLER' && currentUser.role !== 'ADMIN')) {
+            return `<div class="card"><p>Access denied. Only sellers and admins can edit products.</p></div>`;
+        }
+
+        let product = null;
+        try {
+            product = await apiService.getProductById(productId);
+        } catch (error) {
+            return `
+                <div class="card">
+                    <h3>Error Loading Product</h3>
+                    <p>${error.message}</p>
+                    <button onclick="loadView('seller-products')" class="btn mt-2">
+                        <i class="fas fa-arrow-left"></i> Back to Products
+                    </button>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="form-container">
+                <h2>Edit Product</h2>
+                <form id="editProductForm" onsubmit="updateProduct(${productId}, event)">
+                    <div class="form-group">
+                        <label for="edit-product-name">Product Name *</label>
+                        <input type="text" id="edit-product-name" class="form-control" value="${product.name}" required maxlength="500">
+                        <small class="text-gray">Max 500 characters</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-product-description">Description *</label>
+                        <textarea id="edit-product-description" class="form-control" required>${product.description}</textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-product-price">Price ($) *</label>
+                            <input type="number" id="edit-product-price" class="form-control" value="${product.price}" min="0.01" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-product-quantity">Quantity *</label>
+                            <input type="number" id="edit-product-quantity" class="form-control" value="${product.quantity}" min="1" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-product-category">Category *</label>
+                        <select id="edit-product-category" class="form-control" required>
+                            <option value="">Select category</option>
+                            ${categories.map(cat => `
+                                <option value="${cat.name}" ${cat.name === product.category ? 'selected' : ''}>${cat.name}</option>
+                            `).join('')}
+                        </select>
+                        <small class="text-gray">Max 100 characters</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Product Image</label>
+                        <div class="file-upload-container"
+                             ondragover="handleDragOver(event)"
+                             ondragleave="handleDragLeave(event)"
+                             ondrop="handleDrop(event)"
+                             onclick="document.getElementById('editProductImageFile').click()">
+                            <div class="file-upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <p>Drag & drop an image here or click to browse</p>
+                            <p><small>Supported formats: JPG, PNG, GIF (Max 10MB)</small></p>
+                            <input type="file" id="editProductImageFile" class="file-input" accept="image/*" onchange="handleEditImageUpload(event)">
+                        </div>
+
+                        <div id="editImagePreviewContainer" class="image-preview" style="${product.imageUrl ? 'display: block;' : 'display: none;'}">
+                            <p>Current Image:</p>
+                            <img id="editImagePreview" src="${product.imageUrl || ''}" alt="Product image preview">
+                            <div class="flex gap-2 mt-2">
+                                <button type="button" onclick="clearEditImage()" class="btn-danger">
+                                    <i class="fas fa-trash"></i> Remove Image
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3>Carbon Footprint (kg CO2e)</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-carbon-manufacturing">Manufacturing</label>
+                            <input type="number" id="edit-carbon-manufacturing" class="form-control" min="0" step="0.1" value="${product.carbonBreakdown?.manufacturing || 0}">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-carbon-transportation">Transportation</label>
+                            <input type="number" id="edit-carbon-transportation" class="form-control" min="0" step="0.1" value="${product.carbonBreakdown?.transportation || 0}">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-carbon-packaging">Packaging</label>
+                            <input type="number" id="edit-carbon-packaging" class="form-control" min="0" step="0.1" value="${product.carbonBreakdown?.packaging || 0}">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-carbon-disposal">Disposal</label>
+                            <input type="number" id="edit-carbon-disposal" class="form-control" min="0" step="0.1" value="${product.carbonBreakdown?.disposal || 0}">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <button type="submit" class="btn" style="width: 100%;">
+                            <i class="fas fa-save"></i> Update Product
+                        </button>
+                    </div>
+                </form>
+            </div>
+        `;
+    }
+
+    async function updateProduct(productId, event) {
+        event.preventDefault();
+
+        const productData = {
+            userId: currentUser.id,
+            name: document.getElementById('edit-product-name').value,
+            description: document.getElementById('edit-product-description').value,
+            price: parseFloat(document.getElementById('edit-product-price').value),
+            quantity: parseInt(document.getElementById('edit-product-quantity').value),
+            category: document.getElementById('edit-product-category').value,
+            imageBase64: currentImageBase64 || '',
+            manufacturing: parseFloat(document.getElementById('edit-carbon-manufacturing').value) || 0,
+            transportation: parseFloat(document.getElementById('edit-carbon-transportation').value) || 0,
+            packaging: parseFloat(document.getElementById('edit-carbon-packaging').value) || 0,
+            usage: 0,
+            disposal: parseFloat(document.getElementById('edit-carbon-disposal').value) || 0
+        };
+
+        try {
+            await apiService.updateProduct(productId, productData);
+            showNotification('Product updated successfully!', 'success');
+
+            // Clear image from localStorage
+            localStorage.removeItem('ecobazaar_product_image');
+            currentImageBase64 = null;
+            currentImageFile = null;
+
+            loadView('seller-products');
+        } catch (error) {
+            showNotification(`Error updating product: ${error.message}`, 'error');
+        }
+    }
+
+    async function renderPendingProducts() {
+        if (!currentUser || currentUser.role !== 'ADMIN') {
+            return `<div class="card"><p>Access denied. Only admins can view pending products.</p></div>`;
+        }
+
+        let pendingProducts = [];
+        try {
+            pendingProducts = await apiService.getPendingProducts();
+        } catch (error) {
+            console.error('Error loading pending products:', error);
+        }
+
+        return `
+            <div class="flex justify-between items-center mb-3">
+                <h2><i class="fas fa-clock"></i> Pending Product Verifications</h2>
+                <button onclick="loadView('pending-products')" class="btn">
+                    <i class="fas fa-redo"></i> Refresh
+                </button>
+            </div>
+
+            ${pendingProducts.length > 0 ? `
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Seller</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Carbon</th>
+                                <th>Submitted</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${pendingProducts.map(product => `
+                                <tr>
+                                    <td>
+                                        <div class="flex items-center gap-2">
+                                            <div style="width: 60px; height: 60px; background: #f5f5f5; border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                                ${product.imageUrl ?
+                                                    `<img src="${product.imageUrl}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;">` :
+                                                    `<i class="fas fa-leaf" style="color: var(--primary-color);"></i>`
+                                                }
+                                            </div>
+                                            <div>
+                                                <div><strong>${product.name}</strong></div>
+                                                <div style="font-size: 0.9rem; color: var(--gray-color);">${product.description.substring(0, 50)}${product.description.length > 50 ? '...' : ''}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>${product.sellerName}</td>
+                                    <td>${product.category}</td>
+                                    <td>$${product.price.toFixed(2)}</td>
+                                    <td>
+                                        <div class="carbon-badge carbon-${product.ecoRating ? product.ecoRating.toLowerCase() : 'b'}">
+                                            <i class="fas fa-cloud"></i> ${product.carbonFootprint} kg
+                                        </div>
+                                    </td>
+                                    <td>${new Date(product.createdAt).toLocaleDateString()}</td>
+                                    <td>
+                                        <div class="flex gap-1">
+                                            <button onclick="viewProduct(${product.id})" class="btn" style="padding: 5px 10px; font-size: 0.9rem;">
+                                                <i class="fas fa-eye"></i> View
+                                            </button>
+                                            <button onclick="verifyProduct(${product.id})" class="btn-secondary" style="padding: 5px 10px; font-size: 0.9rem;">
+                                                <i class="fas fa-check-circle"></i> Verify
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3>Verification Summary</h3>
+                            <p>Pending Verifications: ${pendingProducts.length}</p>
+                        </div>
+                        <div>
+                            <button onclick="verifyAllProducts()" class="btn-secondary">
+                                <i class="fas fa-check-double"></i> Verify All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            ` : `
+                <div class="card text-center">
+                    <h3>No Pending Products</h3>
+                    <p>All products have been verified.</p>
+                    <button onclick="loadView('admin-dashboard')" class="btn mt-2">
+                        <i class="fas fa-tachometer-alt"></i> Go to Admin Dashboard
+                    </button>
+                </div>
+            `}
+        `;
+    }
+
+    async function verifyAllProducts() {
+        if (!currentUser || currentUser.role !== 'ADMIN') {
+            showNotification('Only admins can verify products', 'error');
+            return;
+        }
+
+        let pendingProducts = [];
+        try {
+            pendingProducts = await apiService.getPendingProducts();
+        } catch (error) {
+            showNotification(`Error loading pending products: ${error.message}`, 'error');
+            return;
+        }
+
+        let verifiedCount = 0;
+        for (const product of pendingProducts) {
+            try {
+                await apiService.verifyProduct(product.id);
+                verifiedCount++;
+            } catch (error) {
+                console.error(`Error verifying product ${product.id}:`, error);
+            }
+        }
+
+        showNotification(`Verified ${verifiedCount} out of ${pendingProducts.length} products`, 'success');
+        loadView('pending-products');
+    }
+
+    async function renderAllOrders() {
+        if (!currentUser || currentUser.role !== 'ADMIN') {
+            return `<div class="card"><p>Access denied. Only admins can view all orders.</p></div>`;
+        }
+
+        let allOrders = [];
+        try {
+            allOrders = await apiService.getAllOrders();
+        } catch (error) {
+            console.error('Error loading all orders:', error);
+        }
+
+        return `
+            <h2><i class="fas fa-list"></i> All Orders</h2>
+
+            ${allOrders.length > 0 ? `
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Items</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${allOrders.map(order => `
+                                <tr>
+                                    <td>#${order.id}</td>
+                                    <td>
+                                        <div>${order.user?.fullName || 'Unknown'}</div>
+                                        <div style="font-size: 0.9rem; color: var(--gray-color);">${order.user?.email || ''}</div>
+                                    </td>
+                                    <td>${new Date(order.createdAt).toLocaleDateString()}</td>
+                                    <td>$${order.totalAmount?.toFixed(2)}</td>
+                                    <td>${order.items?.length || 0}</td>
+                                    <td>
+                                        <span class="status-badge status-${order.status?.toLowerCase()}">
+                                            ${order.status}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="flex gap-1">
+                                            <button onclick="viewOrder(${order.id})" class="btn" style="padding: 5px 10px; font-size: 0.9rem;">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button onclick="updateOrderStatusPrompt(${order.id})" class="btn-secondary" style="padding: 5px 10px; font-size: 0.9rem;">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            ` : `
+                <div class="card">
+                    <h3>No Orders Yet</h3>
+                    <p>No orders have been placed on the platform yet.</p>
+                </div>
+            `}
+        `;
+    }
+
+    async function viewOrder(orderId) {
+        try {
+            const order = await apiService.getOrderById(orderId);
+
+            const content = `
+                <h3>Order Details #${order.id}</h3>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Customer</label>
+                        <div class="form-control" style="background: #f5f5f5;">
+                            ${order.user?.fullName || 'Unknown'} (${order.user?.email || 'No email'})
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Order Date</label>
+                        <div class="form-control" style="background: #f5f5f5;">
+                            ${new Date(order.createdAt).toLocaleString()}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Total Amount</label>
+                        <div class="form-control" style="background: #f5f5f5; font-weight: bold; color: var(--primary-color);">
+                            $${order.totalAmount?.toFixed(2)}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Total Carbon</label>
+                        <div class="form-control" style="background: #f5f5f5;">
+                            ${order.totalCarbonFootprint} kg CO2e
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Shipping Address</label>
+                        <div class="form-control" style="background: #f5f5f5;">
+                            ${order.shippingAddress}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <div class="form-control" style="background: #f5f5f5;">
+                            ${order.phoneNumber}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Payment Method</label>
+                        <div class="form-control" style="background: #f5f5f5;">
+                            ${order.paymentMethod}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <div class="form-control" style="background: #f5f5f5;">
+                            <span class="status-badge status-${order.status?.toLowerCase()}">
+                                ${order.status}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <h4>Order Items</h4>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Subtotal</th>
+                                <th>Carbon</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${order.items?.map(item => `
+                                <tr>
+                                    <td>
+                                        <div class="flex items-center gap-2">
+                                            <div style="width: 40px; height: 40px; background: #f5f5f5; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                                ${item.product?.imageUrl ?
+                                                    `<img src="${item.product.imageUrl}" alt="${item.productNameSnapshot}" style="width: 100%; height: 100%; object-fit: cover;">` :
+                                                    `<i class="fas fa-leaf"></i>`
+                                                }
+                                            </div>
+                                            <div>${item.productNameSnapshot}</div>
+                                        </div>
+                                    </td>
+                                    <td>$${item.priceSnapshot?.toFixed(2)}</td>
+                                    <td>${item.quantity}</td>
+                                    <td>$${(item.priceSnapshot * item.quantity).toFixed(2)}</td>
+                                    <td>${(item.carbonSnapshot * item.quantity).toFixed(2)} kg</td>
+                                </tr>
+                            `).join('') || '<tr><td colspan="5" class="text-center">No items</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex gap-2 mt-3">
+                    <button onclick="updateOrderStatusPrompt(${order.id})" class="btn">
+                        <i class="fas fa-edit"></i> Update Status
+                    </button>
+                    <button onclick="closeModal()" class="btn-outline">
+                        <i class="fas fa-times"></i> Close
+                    </button>
+                </div>
+            `;
+
+            openModal(`Order #${order.id}`, content);
+        } catch (error) {
+            showNotification(`Error loading order: ${error.message}`, 'error');
+        }
+    }
+
+    function updateOrderStatusPrompt(orderId) {
+        const statuses = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
+
+        const content = `
+            <h3>Update Order Status</h3>
+            <form onsubmit="updateOrderStatus(${orderId}, event)">
+                <div class="form-group">
+                    <label for="orderStatus">Select New Status</label>
+                    <select id="orderStatus" class="form-control" required>
+                        <option value="">Select status</option>
+                        ${statuses.map(status => `
+                            <option value="${status}">${status}</option>
+                        `).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn" style="width: 100%;">
+                        <i class="fas fa-save"></i> Update Status
+                    </button>
+                </div>
+            </form>
+        `;
+
+        openModal('Update Order Status', content);
+    }
+
+    async function updateOrderStatus(orderId, event) {
+        event.preventDefault();
+
+        const status = document.getElementById('orderStatus').value;
+
+        try {
+            await apiService.updateOrderStatus(orderId, status);
+            showNotification('Order status updated successfully!', 'success');
+            closeModal();
+            loadView('all-orders');
+        } catch (error) {
+            showNotification(`Error updating order status: ${error.message}`, 'error');
+        }
+    }
+
+    async function renderCategories() {
+        if (!currentUser || currentUser.role !== 'ADMIN') {
+            return `<div class="card"><p>Access denied. Only admins can manage categories.</p></div>`;
+        }
+
+        return `
+            <div class="flex justify-between items-center mb-3">
+                <h2><i class="fas fa-tags"></i> Manage Categories</h2>
+                <button onclick="showAddCategoryForm()" class="btn">
+                    <i class="fas fa-plus"></i> Add Category
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Icon</th>
+                            <th>Active</th>
+                            <th>Order</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${categories.map(category => `
+                            <tr>
+                                <td>${category.id}</td>
+                                <td><strong>${category.name}</strong></td>
+                                <td>${category.description}</td>
+                                <td><i class="${category.icon}"></i> ${category.icon}</td>
+                                <td>${category.active ? 'Yes' : 'No'}</td>
+                                <td>${category.displayOrder}</td>
+                                <td>
+                                    <div class="flex gap-1">
+                                        <button onclick="showEditCategoryForm(${category.id})" class="btn-secondary" style="padding: 5px 10px; font-size: 0.9rem;">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button onclick="deleteCategory(${category.id})" class="btn-danger" style="padding: 5px 10px; font-size: 0.9rem;">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    function showAddCategoryForm() {
+        const content = `
+            <h3>Add New Category</h3>
+            <form onsubmit="addCategory(event)">
+                <div class="form-group">
+                    <label for="categoryName">Name *</label>
+                    <input type="text" id="categoryName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="categoryDescription">Description</label>
+                    <textarea id="categoryDescription" class="form-control"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="categoryIcon">Font Awesome Icon</label>
+                    <input type="text" id="categoryIcon" class="form-control" value="fa-box" placeholder="e.g., fa-tshirt, fa-home">
+                    <small>Use Font Awesome icon class names (without the 'fa-' prefix)</small>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn" style="width: 100%;">
+                        <i class="fas fa-plus"></i> Add Category
+                    </button>
+                </div>
+            </form>
+        `;
+
+        openModal('Add Category', content);
+    }
+
+    async function addCategory(event) {
+        event.preventDefault();
+
+        const categoryData = {
+            name: document.getElementById('categoryName').value,
+            description: document.getElementById('categoryDescription').value,
+            icon: document.getElementById('categoryIcon').value
+        };
+
+        try {
+            await apiService.createCategory(categoryData);
+            showNotification('Category added successfully!', 'success');
+            closeModal();
+            loadCategories();
+            loadView('categories');
+        } catch (error) {
+            showNotification(`Error adding category: ${error.message}`, 'error');
+        }
+    }
+
+    function showEditCategoryForm(categoryId) {
+        const category = categories.find(c => c.id === categoryId);
+        if (!category) return;
+
+        const content = `
+            <h3>Edit Category</h3>
+            <form onsubmit="editCategory(${categoryId}, event)">
+                <div class="form-group">
+                    <label for="editCategoryName">Name *</label>
+                    <input type="text" id="editCategoryName" class="form-control" value="${category.name}" required>
+                </div>
+                <div class="form-group">
+                    <label for="editCategoryDescription">Description</label>
+                    <textarea id="editCategoryDescription" class="form-control">${category.description}</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="editCategoryIcon">Font Awesome Icon</label>
+                    <input type="text" id="editCategoryIcon" class="form-control" value="${category.icon}" placeholder="e.g., fa-tshirt, fa-home">
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn" style="width: 100%;">
+                        <i class="fas fa-save"></i> Update Category
+                    </button>
+                </div>
+            </form>
+        `;
+
+        openModal('Edit Category', content);
+    }
+
+    async function editCategory(categoryId, event) {
+        event.preventDefault();
+
+        const categoryData = {
+            name: document.getElementById('editCategoryName').value,
+            description: document.getElementById('editCategoryDescription').value,
+            icon: document.getElementById('editCategoryIcon').value
+        };
+
+        try {
+            await apiService.updateCategory(categoryId, categoryData);
+            showNotification('Category updated successfully!', 'success');
+            closeModal();
+            loadCategories();
+            loadView('categories');
+        } catch (error) {
+            showNotification(`Error updating category: ${error.message}`, 'error');
+        }
+    }
+
+    async function deleteCategory(categoryId) {
+        if (!confirm('Are you sure you want to delete this category?')) {
+            return;
+        }
+
+        try {
+            await apiService.deleteCategory(categoryId);
+            showNotification('Category deleted successfully!', 'success');
+            loadCategories();
+            loadView('categories');
+        } catch (error) {
+            showNotification(`Error deleting category: ${error.message}`, 'error');
+        }
+    }
+
+    async function renderWishlist() {
         if (!currentUser || currentUser.role !== 'USER') {
-            showNotification('Please login as a user to add items to cart', 'error');
-            return;
+            return `<div class="card"><p>Access denied. Only users can view wishlist.</p></div>`;
         }
 
+        let wishlistItems = [];
         try {
-            await apiService.addToCart(currentUser.id, { productId, quantity: 1 });
-            showNotification('Product added to cart!', 'success');
-            loadView('cart');
+            wishlistItems = await apiService.getWishlist(currentUser.id);
         } catch (error) {
-            showNotification(`Error adding to cart: ${error.message}`, 'error');
+            console.error('Error loading wishlist:', error);
+        }
+
+        return `
+            <h2><i class="fas fa-heart"></i> My Wishlist</h2>
+
+            ${wishlistItems.length > 0 ? `
+                <div class="products-grid">
+                    ${wishlistItems.map(item => `
+                        <div class="product-card">
+                            <div class="product-image">
+                                ${item.image ?
+                                    `<img src="${item.image}" alt="${item.productName}">` :
+                                    `<i class="fas fa-leaf" style="font-size: 3rem; color: var(--primary-color);"></i>`
+                                }
+                            </div>
+                            <div class="product-details">
+                                <h3 class="product-name">${item.productName}</h3>
+                                <div class="product-price">$${item.price.toFixed(2)}</div>
+                                <div class="product-meta">
+                                    <span>${item.category}</span>
+                                    <span><i class="fas fa-star"></i> ${item.averageRating || 'No ratings'}</span>
+                                </div>
+                                <div class="carbon-badge carbon-${item.ecoRating ? item.ecoRating.toLowerCase() : 'b'}">
+                                    <i class="fas fa-cloud"></i> ${item.carbonFootprint} kg CO2e
+                                </div>
+                                <div class="flex gap-1 mt-2">
+                                    <button onclick="viewProduct(${item.productId})" class="btn" style="flex: 1;">
+                                        <i class="fas fa-eye"></i> View
+                                    </button>
+                                    <button onclick="removeFromWishlist(${item.productId})" class="btn-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : `
+                <div class="card text-center">
+                    <h3>Your wishlist is empty</h3>
+                    <p>Add some products to your wishlist!</p>
+                    <button onclick="loadView('products')" class="btn mt-2">
+                        <i class="fas fa-store"></i> Browse Products
+                    </button>
+                </div>
+            `}
+        `;
+    }
+
+    async function removeFromWishlist(productId) {
+        try {
+            await apiService.removeFromWishlist(currentUser.id, productId);
+            showNotification('Product removed from wishlist!', 'success');
+            loadView('wishlist');
+        } catch (error) {
+            showNotification(`Error removing from wishlist: ${error.message}`, 'error');
         }
     }
 
-    async function addToWishlist(productId) {
-        if (!currentUser) {
-            showNotification('Please login to add items to wishlist', 'error');
-            return;
+    async function renderUserOrders() {
+        if (!currentUser || currentUser.role !== 'USER') {
+            return `<div class="card"><p>Access denied. Only users can view orders.</p></div>`;
         }
 
+        let userOrders = [];
         try {
-            await apiService.addToWishlist(currentUser.id, productId);
-            showNotification('Product added to wishlist!', 'success');
+            userOrders = await apiService.getUserOrders(currentUser.id);
         } catch (error) {
-            showNotification(`Error adding to wishlist: ${error.message}`, 'error');
+            console.error('Error loading user orders:', error);
         }
+
+        return `
+            <h2><i class="fas fa-box"></i> My Orders</h2>
+
+            ${userOrders.length > 0 ? `
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Date</th>
+                                <th>Items</th>
+                                <th>Amount</th>
+                                <th>Carbon</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${userOrders.map(order => `
+                                <tr>
+                                    <td>#${order.id}</td>
+                                    <td>${new Date(order.createdAt).toLocaleDateString()}</td>
+                                    <td>${order.items?.length || 0}</td>
+                                    <td>$${order.totalAmount?.toFixed(2)}</td>
+                                    <td>${order.totalCarbonFootprint} kg</td>
+                                    <td>
+                                        <span class="status-badge status-${order.status?.toLowerCase()}">
+                                            ${order.status}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button onclick="viewOrder(${order.id})" class="btn" style="padding: 5px 10px; font-size: 0.9rem;">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3>Order Summary</h3>
+                            <p>Total Orders: ${userOrders.length}</p>
+                            <p>Total Spent: $${userOrders.reduce((sum, order) => sum + order.totalAmount, 0).toFixed(2)}</p>
+                        </div>
+                        <div>
+                            <p>Total Carbon: ${userOrders.reduce((sum, order) => sum + order.totalCarbonFootprint, 0).toFixed(2)} kg</p>
+                            <p>Average Order Value: $${(userOrders.reduce((sum, order) => sum + order.totalAmount, 0) / userOrders.length).toFixed(2)}</p>
+                        </div>
+                    </div>
+                </div>
+            ` : `
+                <div class="card text-center">
+                    <h3>No Orders Yet</h3>
+                    <p>You haven't placed any orders yet.</p>
+                    <button onclick="loadView('products')" class="btn mt-2">
+                        <i class="fas fa-store"></i> Start Shopping
+                    </button>
+                </div>
+            `}
+        `;
     }
 
     async function renderCart() {
@@ -1852,6 +3185,24 @@
         }
     }
 
+    function renderCheckout() {
+        return `
+            <div class="form-container">
+                <h2>Checkout</h2>
+                <p>This is a demo checkout page. In a real application, you would integrate with a payment gateway.</p>
+                <div class="card mt-3">
+                    <h3>Order Summary</h3>
+                    <p>Total Items: ${cart.items?.length || 0}</p>
+                    <p>Total Amount: $${cart.items?.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2) || '0.00'}</p>
+                    <p>Total Carbon: ${cart.items?.reduce((sum, item) => sum + (item.carbonFootprint * item.quantity), 0).toFixed(2) || '0.00'} kg CO2e</p>
+                </div>
+                <button onclick="loadView('cart')" class="btn-outline mt-3" style="width: 100%;">
+                    <i class="fas fa-arrow-left"></i> Back to Cart
+                </button>
+            </div>
+        `;
+    }
+
     async function proceedToCheckout() {
         if (!cart.items || cart.items.length === 0) {
             showNotification('Your cart is empty', 'error');
@@ -1861,15 +3212,15 @@
         const content = `
             <form onsubmit="placeOrder(event)">
                 <div class="form-group">
-                    <label for="shipping-address">Shipping Address</label>
-                    <textarea id="shipping-address" class="form-control" required></textarea>
+                    <label for="shipping-address">Shipping Address *</label>
+                    <textarea id="shipping-address" class="form-control" required placeholder="Enter your full shipping address"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="phone">Phone Number</label>
-                    <input type="tel" id="phone" class="form-control" required>
+                    <label for="phone">Phone Number *</label>
+                    <input type="tel" id="phone" class="form-control" required placeholder="Enter your phone number">
                 </div>
                 <div class="form-group">
-                    <label for="payment-method">Payment Method</label>
+                    <label for="payment-method">Payment Method *</label>
                     <select id="payment-method" class="form-control" required>
                         <option value="">Select payment method</option>
                         <option value="Credit Card">Credit Card</option>
@@ -1923,9 +3274,6 @@
             showNotification(`Error placing order: ${error.message}`, 'error');
         }
     }
-
-    // Additional view rendering functions would be implemented similarly
-    // Due to length constraints, I'll implement a few key ones
 
     async function renderUserDashboard() {
         if (!currentUser || currentUser.role !== 'USER') {
@@ -2038,112 +3386,353 @@
         `;
     }
 
-    // For the sake of brevity, I'll show a few more key functions but not all
-    // The complete implementation would include all the render functions
+    async function renderAdminDashboard() {
+        if (!currentUser || currentUser.role !== 'ADMIN') {
+            return `<div class="card"><p>Access denied. Admin dashboard is only for ADMIN role.</p></div>`;
+        }
 
-    function renderAddProductForm() {
-        if (!currentUser || (currentUser.role !== 'SELLER' && currentUser.role !== 'ADMIN')) {
-            return `<div class="card"><p>Access denied. Only sellers and admins can add products.</p></div>`;
+        let dashboardData = {};
+        try {
+            dashboardData = await apiService.getAdminDashboard();
+        } catch (error) {
+            console.error('Error loading admin dashboard:', error);
         }
 
         return `
-            <div class="form-container">
-                <h2>Add New Product</h2>
-                <form onsubmit="submitProductForm(event)">
-                    <div class="form-group">
-                        <label for="product-name">Product Name</label>
-                        <input type="text" id="product-name" class="form-control" required>
-                    </div>
+            <h2><i class="fas fa-cog"></i> Admin Dashboard</h2>
 
-                    <div class="form-group">
-                        <label for="product-description">Description</label>
-                        <textarea id="product-description" class="form-control" required></textarea>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="product-price">Price ($)</label>
-                            <input type="number" id="product-price" class="form-control" min="0.01" step="0.01" required>
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3><i class="fas fa-chart-bar"></i> Platform Stats</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value">${dashboardData.platformStats?.totalUsers || 0}</div>
+                            <div class="stat-label">Total Users</div>
                         </div>
-                        <div class="form-group">
-                            <label for="product-quantity">Quantity</label>
-                            <input type="number" id="product-quantity" class="form-control" min="1" required>
+                        <div class="stat-item">
+                            <div class="stat-value">${dashboardData.platformStats?.totalSellers || 0}</div>
+                            <div class="stat-label">Total Sellers</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${dashboardData.platformStats?.totalProducts || 0}</div>
+                            <div class="stat-label">Total Products</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${dashboardData.platformStats?.totalOrders || 0}</div>
+                            <div class="stat-label">Total Orders</div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="form-group">
-                        <label for="product-category">Category</label>
-                        <select id="product-category" class="form-control" required>
-                            <option value="">Select category</option>
-                            ${categories.map(cat => `
-                                <option value="${cat.name}">${cat.name}</option>
+                <div class="card">
+                    <h3><i class="fas fa-leaf"></i> Carbon Impact</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value">${dashboardData.platformStats?.platformCarbonFootprint?.toFixed(1) || 0}</div>
+                            <div class="stat-label">Total Carbon (kg)</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${dashboardData.platformStats?.platformCarbonSaved?.toFixed(1) || 0}</div>
+                            <div class="stat-label">Carbon Saved (kg)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-3 mt-3">
+                ${dashboardData.pendingVerifications && dashboardData.pendingVerifications.length > 0 ? `
+                    <div class="card" style="flex: 1;">
+                        <h3><i class="fas fa-clock"></i> Pending Verifications</h3>
+                        <div style="max-height: 300px; overflow-y: auto;">
+                            ${dashboardData.pendingVerifications.slice(0, 5).map(product => `
+                                <div class="flex items-center justify-between mb-2 p-2" style="background: #f9f9f9; border-radius: var(--border-radius);">
+                                    <div>
+                                        <div><strong>${product.productName}</strong></div>
+                                        <div style="font-size: 0.9rem;">Seller: ${product.sellerName}</div>
+                                    </div>
+                                    <button onclick="verifyProduct(${product.productId})" class="btn-secondary" style="padding: 5px 10px; font-size: 0.9rem;">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </div>
                             `).join('')}
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="product-image">Product Image (Base64 or URL)</label>
-                        <textarea id="product-image" class="form-control" placeholder="Enter base64 image data or image URL"></textarea>
-                        <small>Leave empty for default eco icon</small>
-                    </div>
-
-                    <h3>Carbon Footprint (kg CO2e)</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="carbon-manufacturing">Manufacturing</label>
-                            <input type="number" id="carbon-manufacturing" class="form-control" min="0" step="0.1" value="0">
-                        </div>
-                        <div class="form-group">
-                            <label for="carbon-transportation">Transportation</label>
-                            <input type="number" id="carbon-transportation" class="form-control" min="0" step="0.1" value="0">
+                            ${dashboardData.pendingVerifications.length > 5 ? `
+                                <div class="text-center mt-2">
+                                    <button onclick="loadView('pending-products')" class="btn-outline">
+                                        View All (${dashboardData.pendingVerifications.length})
+                                    </button>
+                                </div>
+                            ` : ''}
                         </div>
                     </div>
+                ` : ''}
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="carbon-packaging">Packaging</label>
-                            <input type="number" id="carbon-packaging" class="form-control" min="0" step="0.1" value="0">
-                        </div>
-                        <div class="form-group">
-                            <label for="carbon-disposal">Disposal</label>
-                            <input type="number" id="carbon-disposal" class="form-control" min="0" step="0.1" value="0">
+                ${dashboardData.topSellers && dashboardData.topSellers.length > 0 ? `
+                    <div class="card" style="flex: 1;">
+                        <h3><i class="fas fa-trophy"></i> Top Sellers</h3>
+                        <div style="max-height: 300px; overflow-y: auto;">
+                            ${dashboardData.topSellers.slice(0, 5).map(seller => `
+                                <div class="flex items-center gap-2 mb-2 p-2" style="background: #f9f9f9; border-radius: var(--border-radius);">
+                                    <div style="width: 40px; height: 40px; background: var(--primary-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                        ${seller.sellerName?.charAt(0) || 'S'}
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <div><strong>${seller.sellerName}</strong></div>
+                                        <div style="font-size: 0.9rem;">Revenue: $${seller.revenue?.toFixed(2)}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
+                ` : ''}
+            </div>
 
-                    <div class="form-group">
-                        <button type="submit" class="btn" style="width: 100%;">
-                            <i class="fas fa-plus-circle"></i> Add Product
-                        </button>
-                    </div>
-                </form>
+            <div class="card mt-3">
+                <h3><i class="fas fa-rocket"></i> Quick Actions</h3>
+                <div class="flex gap-2">
+                    <button onclick="loadView('pending-products')" class="btn">
+                        <i class="fas fa-check-circle"></i> Verify Products
+                    </button>
+                    <button onclick="loadView('all-orders')" class="btn-outline">
+                        <i class="fas fa-list"></i> View All Orders
+                    </button>
+                    <button onclick="loadView('categories')" class="btn-outline">
+                        <i class="fas fa-tags"></i> Manage Categories
+                    </button>
+                </div>
             </div>
         `;
     }
 
-    async function submitProductForm(event) {
-        event.preventDefault();
-
-        const productData = {
-            userId: currentUser.id,
-            name: document.getElementById('product-name').value,
-            description: document.getElementById('product-description').value,
-            price: parseFloat(document.getElementById('product-price').value),
-            quantity: parseInt(document.getElementById('product-quantity').value),
-            category: document.getElementById('product-category').value,
-            imageBase64: document.getElementById('product-image').value || '',
-            manufacturing: parseFloat(document.getElementById('carbon-manufacturing').value) || 0,
-            transportation: parseFloat(document.getElementById('carbon-transportation').value) || 0,
-            packaging: parseFloat(document.getElementById('carbon-packaging').value) || 0,
-            usage: 0,
-            disposal: parseFloat(document.getElementById('carbon-disposal').value) || 0
-        };
+    async function renderProducts(params = {}) {
+        const { category, search } = params;
+        let productsData = { products: [] };
 
         try {
-            await apiService.addProduct(productData);
-            showNotification('Product added successfully!', 'success');
-            loadView(currentUser.role === 'SELLER' ? 'seller-products' : 'products');
+            const queryParams = {};
+            if (category) queryParams.category = category;
+            if (search) queryParams.search = search;
+
+            productsData = await apiService.getProducts(queryParams);
+            products = productsData.products || [];
         } catch (error) {
-            showNotification(`Error adding product: ${error.message}`, 'error');
+            console.error('Error loading products:', error);
+        }
+
+        return `
+            <div class="flex justify-between items-center mb-3">
+                <h2>Eco Products</h2>
+                <div class="flex gap-2">
+                    <input type="text" id="productSearch" class="form-control" placeholder="Search products..." value="${search || ''}"
+                           onkeyup="if(event.key === 'Enter') searchProducts()">
+                    <button onclick="searchProducts()" class="btn">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex gap-2 mb-3" style="flex-wrap: wrap;">
+                <button onclick="loadView('products')" class="btn-outline ${!category ? 'active' : ''}">
+                    All Categories
+                </button>
+                ${categories.slice(0, 6).map(cat => `
+                    <button onclick="loadView('products', {category: '${cat.name}'})"
+                            class="btn-outline ${category === cat.name ? 'active' : ''}">
+                        ${cat.name}
+                    </button>
+                `).join('')}
+            </div>
+
+            ${products.length > 0 ? `
+                <div class="products-grid">
+                    ${products.map(product => `
+                        <div class="product-card">
+                            <div class="product-image">
+                                ${product.imageUrl ?
+                                    `<img src="${product.imageUrl}" alt="${product.name}" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\"fas fa-leaf\" style=\"font-size: 3rem; color: var(--primary-color);\"></i>';">` :
+                                    `<i class="fas fa-leaf" style="font-size: 3rem; color: var(--primary-color);"></i>`
+                                }
+                                ${product.featured ? `
+                                    <div style="position: absolute; top: 10px; right: 10px; background: var(--secondary-color); color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem;">
+                                        <i class="fas fa-star"></i> Featured
+                                    </div>
+                                ` : ''}
+                            </div>
+                            <div class="product-details">
+                                <h3 class="product-name" title="${product.name}">${product.name.length > 50 ? product.name.substring(0, 50) + '...' : product.name}</h3>
+                                <div class="product-price">$${product.price.toFixed(2)}</div>
+                                <div class="product-meta">
+                                    <span title="${product.category}">${product.category.length > 15 ? product.category.substring(0, 15) + '...' : product.category}</span>
+                                    <span><i class="fas fa-eye"></i> ${product.viewCount || 0}</span>
+                                </div>
+                                <div class="carbon-badge carbon-${product.ecoRating ? product.ecoRating.toLowerCase() : 'b'}">
+                                    <i class="fas fa-cloud"></i> ${product.carbonFootprint} kg CO2e | ${product.ecoRating || 'B'}
+                                </div>
+                                <div class="flex gap-1 mt-2">
+                                    <button onclick="viewProduct(${product.id})" class="btn" style="flex: 1;">
+                                        <i class="fas fa-eye"></i> Details
+                                    </button>
+                                    ${currentUser && currentUser.role === 'USER' ? `
+                                        <button onclick="addToCart(${product.id})" class="btn-secondary">
+                                            <i class="fas fa-cart-plus"></i>
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                ${productsData.totalPages > 1 ? `
+                    <div class="flex justify-center gap-2 mt-3">
+                        <button onclick="loadProductsPage(${productsData.currentPage - 1})"
+                                class="btn-outline ${!productsData.hasPrevious ? 'hidden' : ''}">
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </button>
+                        <span class="flex items-center">Page ${productsData.currentPage + 1} of ${productsData.totalPages}</span>
+                        <button onclick="loadProductsPage(${productsData.currentPage + 1})"
+                                class="btn-outline ${!productsData.hasNext ? 'hidden' : ''}">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                ` : ''}
+            ` : `
+                <div class="card">
+                    <h3>No products found</h3>
+                    <p>${search ? `No products match your search "${search}"` : 'No products available in this category'}</p>
+                    <button onclick="loadView('products')" class="btn mt-2">
+                        <i class="fas fa-store"></i> Browse All Products
+                    </button>
+                </div>
+            `}
+        `;
+    }
+
+    async function viewProduct(productId) {
+        try {
+            const product = await apiService.getProductById(productId);
+
+            const content = `
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
+                    <div>
+                        <div class="product-image" style="height: 300px;">
+                            ${product.imageUrl ?
+                                `<img src="${product.imageUrl}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\"fas fa-leaf\" style=\"font-size: 5rem; color: var(--primary-color);\"></i>';">` :
+                                `<i class="fas fa-leaf" style="font-size: 5rem; color: var(--primary-color);"></i>`
+                            }
+                        </div>
+                    </div>
+                    <div>
+                        <h2>${product.name}</h2>
+                        <div class="product-price" style="font-size: 1.8rem;">$${product.price.toFixed(2)}</div>
+
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="carbon-badge carbon-${product.ecoRating ? product.ecoRating.toLowerCase() : 'b'}" style="font-size: 1rem;">
+                                <i class="fas fa-cloud"></i> ${product.carbonFootprint} kg CO2e | ${product.ecoRating || 'B'}
+                            </span>
+                            ${product.verified ? `
+                                <span style="background: var(--success-color); color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.9rem;">
+                                    <i class="fas fa-check-circle"></i> Verified
+                                </span>
+                            ` : ''}
+                        </div>
+
+                        <p>${product.description}</p>
+
+                        <div class="product-meta">
+                            <div><strong>Category:</strong> ${product.category}</div>
+                            <div><strong>Seller:</strong> ${product.sellerName || 'Unknown'}</div>
+                            <div><strong>Stock:</strong> ${product.quantity} available</div>
+                            <div><strong>Views:</strong> ${product.viewCount || 0}</div>
+                            <div><strong>Sold:</strong> ${product.soldCount || 0}</div>
+                            <div><strong>Rating:</strong> ${product.averageRating || 'No ratings yet'}</div>
+                        </div>
+
+                        ${currentUser && currentUser.role === 'USER' ? `
+                            <div class="flex gap-2 mt-3">
+                                <button onclick="addToCart(${product.id})" class="btn" style="flex: 1;">
+                                    <i class="fas fa-cart-plus"></i> Add to Cart
+                                </button>
+                                <button onclick="addToWishlist(${product.id})" class="btn-outline">
+                                    <i class="fas fa-heart"></i> Wishlist
+                                </button>
+                            </div>
+                        ` : ''}
+
+                        ${currentUser && (currentUser.role === 'ADMIN' || (currentUser.role === 'SELLER' && currentUser.id === product.sellerId)) ? `
+                            <div class="flex gap-2 mt-3">
+                                <button onclick="loadView('edit-product', {id: ${product.id}})" class="btn">
+                                    <i class="fas fa-edit"></i> Edit Product
+                                </button>
+                                ${currentUser.role === 'ADMIN' ? `
+                                    <button onclick="toggleFeatured(${product.id})" class="btn-secondary">
+                                        <i class="fas fa-star"></i> ${product.featured ? 'Unfeature' : 'Feature'}
+                                    </button>
+                                    ${!product.verified ? `
+                                        <button onclick="verifyProduct(${product.id})" class="btn">
+                                            <i class="fas fa-check-circle"></i> Verify
+                                        </button>
+                                    ` : ''}
+                                ` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <h3>Carbon Breakdown</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-label">Manufacturing</div>
+                            <div class="stat-value">${product.carbonBreakdown?.manufacturing || 0}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Transportation</div>
+                            <div class="stat-value">${product.carbonBreakdown?.transportation || 0}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Packaging</div>
+                            <div class="stat-value">${product.carbonBreakdown?.packaging || 0}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Disposal</div>
+                            <div class="stat-value">${product.carbonBreakdown?.disposal || 0}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            openModal(product.name, content);
+        } catch (error) {
+            showNotification(`Error loading product: ${error.message}`, 'error');
+        }
+    }
+
+    async function addToCart(productId) {
+        if (!currentUser || currentUser.role !== 'USER') {
+            showNotification('Please login as a user to add items to cart', 'error');
+            return;
+        }
+
+        try {
+            await apiService.addToCart(currentUser.id, { productId, quantity: 1 });
+            showNotification('Product added to cart!', 'success');
+            loadView('cart');
+        } catch (error) {
+            showNotification(`Error adding to cart: ${error.message}`, 'error');
+        }
+    }
+
+    async function addToWishlist(productId) {
+        if (!currentUser) {
+            showNotification('Please login to add items to wishlist', 'error');
+            return;
+        }
+
+        try {
+            await apiService.addToWishlist(currentUser.id, productId);
+            showNotification('Product added to wishlist!', 'success');
+        } catch (error) {
+            showNotification(`Error adding to wishlist: ${error.message}`, 'error');
         }
     }
 
@@ -2186,6 +3775,95 @@
         } catch (error) {
             showNotification(`Error updating featured status: ${error.message}`, 'error');
         }
+    }
+
+    function handleEditImageUpload(event) {
+        handleImageUpload(event);
+    }
+
+    function clearEditImage() {
+        clearImage();
+    }
+
+    // Static pages
+    function renderAbout() {
+        return `
+            <div class="card">
+                <h2>About EcoBazaar</h2>
+                <p>EcoBazaar is a sustainable e-commerce platform dedicated to promoting environmentally friendly products and conscious consumerism.</p>
+
+                <h3 class="mt-3">Our Mission</h3>
+                <p>To make sustainable shopping accessible and transparent by providing detailed carbon footprint information for every product.</p>
+
+                <h3 class="mt-3">How It Works</h3>
+                <div class="stats-grid mt-2">
+                    <div class="stat-item">
+                        <div class="stat-value"><i class="fas fa-leaf"></i></div>
+                        <div class="stat-label">Sustainable Products</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value"><i class="fas fa-cloud"></i></div>
+                        <div class="stat-label">Carbon Tracking</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value"><i class="fas fa-check-circle"></i></div>
+                        <div class="stat-label">Verified Sellers</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value"><i class="fas fa-chart-line"></i></div>
+                        <div class="stat-label">Impact Analytics</div>
+                    </div>
+                </div>
+
+                <h3 class="mt-3">Our Impact</h3>
+                <p>Since our launch, EcoBazaar has helped save over 2,500 tons of CO2 emissions through conscious consumer choices.</p>
+            </div>
+        `;
+    }
+
+    function renderContact() {
+        return `
+            <div class="form-container">
+                <h2>Contact Us</h2>
+                <p>Have questions or feedback? Get in touch with our team.</p>
+
+                <div class="card mt-3">
+                    <h3><i class="fas fa-envelope"></i> Email</h3>
+                    <p>support@ecobazaar.com</p>
+                </div>
+
+                <div class="card mt-3">
+                    <h3><i class="fas fa-phone"></i> Phone</h3>
+                    <p>+1 (555) 123-4567</p>
+                </div>
+
+                <div class="card mt-3">
+                    <h3><i class="fas fa-map-marker-alt"></i> Address</h3>
+                    <p>123 Green Street<br>Sustainable City, SC 12345<br>United States</p>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderPrivacy() {
+        return `
+            <div class="card">
+                <h2>Privacy Policy</h2>
+                <p>Last updated: December 24, 2024</p>
+
+                <h3 class="mt-3">Information We Collect</h3>
+                <p>We collect information you provide directly to us, such as when you create an account, make a purchase, or contact us for support.</p>
+
+                <h3 class="mt-3">How We Use Your Information</h3>
+                <p>We use the information we collect to provide, maintain, and improve our services, process transactions, and communicate with you.</p>
+
+                <h3 class="mt-3">Data Security</h3>
+                <p>We implement appropriate technical and organizational measures to protect your personal information against unauthorized access or disclosure.</p>
+
+                <h3 class="mt-3">Your Rights</h3>
+                <p>You have the right to access, correct, or delete your personal information. Contact us at privacy@ecobazaar.com to exercise these rights.</p>
+            </div>
+        `;
     }
 
     // Initialize the app

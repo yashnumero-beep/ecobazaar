@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,8 +19,6 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
-    // POST /api/orders/{userId}
-    // Body: { "address": "123 Street", "phone": "555-0199", "paymentMethod": "Credit Card" }
     @PostMapping("/{userId}")
     public ResponseEntity<?> createOrder(@PathVariable Long userId, @RequestBody Map<String, String> request) {
         try {
@@ -32,9 +31,24 @@ public class OrderController {
             }
 
             Order order = orderService.createOrderFromCart(userId, address, phone, paymentMethod);
-            return ResponseEntity.ok(order);
+
+            // Return a simple success response instead of the entire order
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Order created successfully");
+            response.put("orderId", order.getId());
+            response.put("orderDate", order.getCreatedAt());
+            response.put("totalAmount", order.getTotalAmount());
+            response.put("totalItems", order.getItems().size());
+
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            // Log the full error
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(
+                    Map.of("error", e.getMessage(),
+                            "timestamp", LocalDateTime.now().toString())
+            );
         }
     }
 

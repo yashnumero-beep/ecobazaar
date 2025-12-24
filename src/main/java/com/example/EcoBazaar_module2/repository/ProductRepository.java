@@ -29,7 +29,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      */
     @Query("SELECT p FROM Product p WHERE " +
             "p.verified = true AND p.active = true AND " +
-            "(:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
+            "(:name IS NULL OR p.name LIKE %:name%) AND " +  // Removed LOWER()
             "(:category IS NULL OR p.category = :category) AND " +
             "(:minPrice IS NULL OR p.price >= :minPrice) AND " +
             "(:maxPrice IS NULL OR p.price <= :maxPrice) AND " +
@@ -49,7 +49,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      */
     @Query("SELECT p FROM Product p LEFT JOIN p.carbonData cd WHERE " +
             "p.verified = true AND p.active = true AND " +
-            "(:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
+            "(:name IS NULL OR p.name LIKE %:name%) AND " +  // Removed LOWER()
             "(:category IS NULL OR p.category = :category) AND " +
             "(:minPrice IS NULL OR p.price >= :minPrice) AND " +
             "(:maxPrice IS NULL OR p.price <= :maxPrice) AND " +

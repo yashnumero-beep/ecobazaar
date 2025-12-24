@@ -1,5 +1,6 @@
 package com.example.EcoBazaar_module2.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,7 +23,8 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    // FIX: Changed from TEXT to VARCHAR to avoid PostgreSQL bytea issue
+    @Column(name = "name", length = 500, columnDefinition = "VARCHAR(500)")
     private String name;
 
     @Column(columnDefinition = "TEXT")
@@ -38,11 +40,13 @@ public class Product {
     @Column(columnDefinition = "TEXT")
     private String imageBase64;
 
-    @Column(nullable = false)
+    // FIX: Changed from TEXT to VARCHAR for category as well
+    @Column(name = "category", length = 100, columnDefinition = "VARCHAR(100)")
     private String category;
 
     @ManyToOne
     @JoinColumn(name = "seller_id", nullable = false)
+    @JsonIgnoreProperties({"products", "orders", "cart", "password"})
     private User seller;
 
     @Column(nullable = false)

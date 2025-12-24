@@ -1,5 +1,6 @@
 package com.example.EcoBazaar_module2.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,6 +23,7 @@ public class CartItem {
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
+    @JsonIgnoreProperties({"cartItems", "orderItems"})
     private Product product;
 
     @Column(nullable = false)
