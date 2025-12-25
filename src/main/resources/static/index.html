@@ -5,25 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EcoBazaar - Sustainable Shopping Platform</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #2e7d32;
-            --primary-dark: #1b5e20;
-            --primary-light: #4caf50;
-            --secondary-color: #ff9800;
-            --secondary-dark: #f57c00;
-            --light-color: #f5f5f5;
-            --dark-color: #333;
-            --gray-color: #757575;
-            --light-gray: #e0e0e0;
-            --success-color: #4caf50;
-            --warning-color: #ff9800;
-            --danger-color: #f44336;
-            --info-color: #2196f3;
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            --border-radius: 8px;
-            --transition: all 0.3s ease;
+            --primary-color: #10B981;
+            --primary-dark: #059669;
+            --primary-light: #34D399;
+            --primary-bg: #ECFDF5;
+            --secondary-color: #F59E0B;
+            --secondary-dark: #D97706;
+            --accent-color: #8B5CF6;
+            --light-color: #F9FAFB;
+            --dark-color: #111827;
+            --gray-dark: #374151;
+            --gray-medium: #6B7280;
+            --gray-light: #E5E7EB;
+            --gray-ultralight: #F3F4F6;
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+            --danger-color: #EF4444;
+            --info-color: #3B82F6;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --border-radius-sm: 6px;
+            --border-radius: 12px;
+            --border-radius-lg: 16px;
+            --border-radius-xl: 20px;
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            --container-max: 1280px;
         }
 
         * {
@@ -33,121 +45,205 @@
         }
 
         body {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             color: var(--dark-color);
-            background-color: #f9f9f9;
+            background-color: var(--light-color);
             line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        h1, h2, h3, h4, h5 {
+        h1, h2, h3, h4, h5, h6 {
             font-family: 'Poppins', sans-serif;
             font-weight: 600;
+            line-height: 1.3;
+            margin-bottom: 1rem;
+            color: var(--dark-color);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            font-size: 2rem;
+            position: relative;
+            padding-bottom: 0.75rem;
+        }
+
+        h2:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+            border-radius: 2px;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            color: var(--gray-dark);
+        }
+
+        p {
+            color: var(--gray-medium);
             margin-bottom: 1rem;
         }
 
         a {
             text-decoration: none;
             color: inherit;
+            transition: var(--transition);
         }
 
         button, .btn {
-            background-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 0.875rem 1.75rem;
             border-radius: var(--border-radius);
             cursor: pointer;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 0.95rem;
             transition: var(--transition);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 0.5rem;
+            letter-spacing: 0.01em;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:after, .btn:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+
+        button:hover:after, .btn:hover:after {
+            left: 100%;
         }
 
         button:hover, .btn:hover {
-            background-color: var(--primary-dark);
             transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        button:active, .btn:active {
+            transform: translateY(0);
         }
 
         .btn-secondary {
-            background-color: var(--secondary-color);
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--secondary-dark);
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
         }
 
         .btn-outline {
-            background-color: transparent;
+            background: transparent;
             border: 2px solid var(--primary-color);
             color: var(--primary-color);
+            box-shadow: none;
         }
 
         .btn-outline:hover {
-            background-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             color: white;
         }
 
         .btn-danger {
-            background-color: var(--danger-color);
+            background: linear-gradient(135deg, var(--danger-color), #DC2626);
         }
 
-        .btn-danger:hover {
-            background-color: #d32f2f;
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-icon {
+            padding: 0.625rem;
+            width: 2.75rem;
+            height: 2.75rem;
         }
 
         .container {
             width: 100%;
-            max-width: 1200px;
+            max-width: var(--container-max);
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 1.5rem;
         }
 
         /* Header Styles */
         header {
             background-color: white;
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-sm);
             position: sticky;
             top: 0;
             z-index: 1000;
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.95);
         }
 
         .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 0;
+            padding: 1rem 0;
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 0.75rem;
+            text-decoration: none;
         }
 
-        .logo i {
-            color: var(--primary-color);
-            font-size: 2rem;
+        .logo-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
         }
 
-        .logo h1 {
-            margin-bottom: 0;
-            font-size: 1.8rem;
-            color: var(--primary-dark);
+        .logo-text {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 1.75rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         nav ul {
             display: flex;
             list-style: none;
-            gap: 25px;
+            gap: 1.5rem;
         }
 
         nav a {
             font-weight: 500;
-            transition: var(--transition);
-            padding: 5px 0;
+            font-size: 0.95rem;
+            padding: 0.5rem 0;
             position: relative;
+            color: var(--gray-dark);
         }
 
         nav a:hover {
@@ -156,105 +252,153 @@
 
         nav a.active {
             color: var(--primary-color);
+            font-weight: 600;
         }
 
-        nav a.active::after {
+        nav a.active:after {
             content: '';
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 2px;
-            background-color: var(--primary-color);
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+            border-radius: 2px;
         }
 
         .user-info {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 1rem;
         }
 
-        .user-info span {
-            font-weight: 500;
-        }
-
-        .user-info .role-badge {
-            background-color: var(--primary-light);
+        .user-avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: white;
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .role-badge {
+            background: var(--primary-bg);
+            color: var(--primary-dark);
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 1px solid var(--primary-light);
         }
 
         /* Main Content */
         main {
             min-height: calc(100vh - 180px);
-            padding: 30px 0;
+            padding: 2rem 0;
+        }
+
+        .page-header {
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--gray-light);
         }
 
         /* Dashboard Cards */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 25px;
-            margin-top: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
         }
 
         .card {
             background-color: white;
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
-            padding: 25px;
+            padding: 1.75rem;
             transition: var(--transition);
+            border: 1px solid var(--gray-light);
         }
 
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-light);
         }
 
-        .card h3 {
+        .card-header {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-            color: var(--primary-dark);
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
         }
 
-        .card h3 i {
+        .card-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: var(--border-radius);
+            background: var(--primary-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: var(--primary-color);
+            font-size: 1.25rem;
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+            gap: 1rem;
         }
 
         .stat-item {
             text-align: center;
-            padding: 15px;
+            padding: 1.25rem;
             border-radius: var(--border-radius);
-            background-color: #f9f9f9;
+            background: linear-gradient(135deg, var(--gray-ultralight), white);
+            border: 1px solid var(--gray-light);
+            transition: var(--transition);
+        }
+
+        .stat-item:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
         }
 
         .stat-value {
-            font-size: 2rem;
+            font-size: 2.25rem;
             font-weight: 700;
             color: var(--primary-color);
-            margin-bottom: 5px;
+            margin-bottom: 0.5rem;
+            line-height: 1;
         }
 
         .stat-label {
-            font-size: 0.9rem;
-            color: var(--gray-color);
+            font-size: 0.875rem;
+            color: var(--gray-medium);
+            font-weight: 500;
         }
 
         /* Product Grid */
         .products-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
         }
 
         .product-card {
@@ -263,78 +407,106 @@
             box-shadow: var(--shadow);
             overflow: hidden;
             transition: var(--transition);
+            border: 1px solid var(--gray-light);
+            position: relative;
         }
 
         .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-light);
         }
 
         .product-image {
             height: 200px;
-            background-color: #f5f5f5;
+            background: linear-gradient(135deg, var(--gray-ultralight), white);
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            position: relative;
         }
 
         .product-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: var(--transition-slow);
+        }
+
+        .product-card:hover .product-image img {
+            transform: scale(1.05);
+        }
+
+        .product-badge {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 0.375rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            z-index: 1;
         }
 
         .product-details {
-            padding: 20px;
+            padding: 1.5rem;
         }
 
         .product-name {
-            font-size: 1.2rem;
+            font-size: 1.125rem;
             font-weight: 600;
-            margin-bottom: 10px;
+            margin-bottom: 0.5rem;
             color: var(--dark-color);
+            line-height: 1.4;
         }
 
         .product-price {
-            font-size: 1.3rem;
+            font-size: 1.5rem;
             font-weight: 700;
             color: var(--primary-color);
-            margin-bottom: 10px;
+            margin-bottom: 0.75rem;
         }
 
         .product-meta {
             display: flex;
             justify-content: space-between;
-            font-size: 0.9rem;
-            color: var(--gray-color);
-            margin-bottom: 15px;
+            font-size: 0.875rem;
+            color: var(--gray-medium);
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--gray-light);
         }
 
         .carbon-badge {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            margin-top: 5px;
+            gap: 0.375rem;
+            padding: 0.375rem 0.875rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
         }
 
         .carbon-a {
-            background-color: #e8f5e9;
-            color: #2e7d32;
+            background: var(--primary-bg);
+            color: var(--primary-dark);
+            border: 1px solid var(--primary-light);
         }
 
         .carbon-b {
-            background-color: #fff3e0;
-            color: #ef6c00;
+            background: #FEF3C7;
+            color: #D97706;
+            border: 1px solid #FBBF24;
         }
 
         .carbon-c {
-            background-color: #ffebee;
-            color: #c62828;
+            background: #FEE2E2;
+            color: #DC2626;
+            border: 1px solid #FCA5A5;
         }
 
         /* Forms */
@@ -344,69 +516,83 @@
             background-color: white;
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
-            padding: 30px;
+            padding: 2.5rem;
+            border: 1px solid var(--gray-light);
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 1.5rem;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--gray-dark);
+            font-size: 0.95rem;
         }
 
         .form-control {
             width: 100%;
-            padding: 12px 15px;
-            border: 1px solid var(--light-gray);
-            border-radius: var(--border-radius);
+            padding: 0.875rem 1rem;
+            border: 2px solid var(--gray-light);
+            border-radius: var(--border-radius-sm);
             font-size: 1rem;
             transition: var(--transition);
+            background-color: white;
+            color: var(--dark-color);
         }
 
         .form-control:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
         }
 
         textarea.form-control {
             min-height: 120px;
             resize: vertical;
+            line-height: 1.5;
         }
 
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: 1.5rem;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
         }
 
         /* File Upload */
         .file-upload-container {
-            border: 2px dashed var(--light-gray);
+            border: 2px dashed var(--gray-light);
             border-radius: var(--border-radius);
-            padding: 30px;
+            padding: 3rem 2rem;
             text-align: center;
             transition: var(--transition);
             cursor: pointer;
+            background: var(--gray-ultralight);
         }
 
         .file-upload-container:hover {
             border-color: var(--primary-color);
-            background-color: rgba(46, 125, 50, 0.05);
+            background: var(--primary-bg);
         }
 
         .file-upload-container.dragover {
             border-color: var(--primary-color);
-            background-color: rgba(46, 125, 50, 0.1);
+            background: var(--primary-bg);
+            transform: scale(1.02);
         }
 
         .file-upload-icon {
-            font-size: 3rem;
+            font-size: 3.5rem;
             color: var(--primary-color);
-            margin-bottom: 15px;
+            margin-bottom: 1rem;
         }
 
         .file-input {
@@ -414,15 +600,19 @@
         }
 
         .image-preview {
-            margin-top: 20px;
+            margin-top: 1.5rem;
             display: none;
         }
 
         .image-preview img {
-            max-width: 100%;
-            max-height: 200px;
+            width: 100%;
+            height: 200px;
+            object-fit: contain;
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
+            background: white;
+            padding: 0.5rem;
+            border: 1px solid var(--gray-light);
         }
 
         /* Tables */
@@ -431,62 +621,83 @@
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
             overflow: hidden;
-            margin-top: 20px;
+            margin-top: 1.5rem;
+            border: 1px solid var(--gray-light);
+            overflow-x: auto;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        thead {
+            background: linear-gradient(135deg, var(--primary-bg), white);
         }
 
         th {
-            background-color: #f5f5f5;
-            padding: 15px;
+            padding: 1.25rem 1.5rem;
             text-align: left;
             font-weight: 600;
-            color: var(--dark-color);
-            border-bottom: 1px solid var(--light-gray);
+            color: var(--gray-dark);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid var(--gray-light);
         }
 
         td {
-            padding: 15px;
-            border-bottom: 1px solid var(--light-gray);
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--gray-light);
+            color: var(--gray-dark);
         }
 
-        tr:last-child td {
+        tbody tr {
+            transition: var(--transition);
+        }
+
+        tbody tr:hover {
+            background-color: var(--primary-bg);
+        }
+
+        tbody tr:last-child td {
             border-bottom: none;
         }
 
-        tr:hover td {
-            background-color: #f9f9f9;
-        }
-
         .status-badge {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.875rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 1px solid;
         }
 
         .status-pending {
-            background-color: #fff3e0;
-            color: #ef6c00;
+            background: #FEF3C7;
+            color: #D97706;
+            border-color: #FBBF24;
         }
 
         .status-confirmed {
-            background-color: #e3f2fd;
-            color: #1565c0;
+            background: #DBEAFE;
+            color: #1D4ED8;
+            border-color: #60A5FA;
         }
 
         .status-shipped {
-            background-color: #e8f5e9;
-            color: #2e7d32;
+            background: var(--primary-bg);
+            color: var(--primary-dark);
+            border-color: var(--primary-light);
         }
 
         .status-delivered {
-            background-color: #f1f8e9;
-            color: #558b2f;
+            background: #D1FAE5;
+            color: #065F46;
+            border-color: #34D399;
         }
 
         /* Modal */
@@ -497,10 +708,17 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(17, 24, 39, 0.7);
             z-index: 2000;
             align-items: center;
             justify-content: center;
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .modal.active {
@@ -509,20 +727,36 @@
 
         .modal-content {
             background-color: white;
-            border-radius: var(--border-radius);
+            border-radius: var(--border-radius-lg);
             width: 90%;
             max-width: 800px;
             max-height: 90vh;
             overflow-y: auto;
-            padding: 30px;
+            padding: 2.5rem;
             position: relative;
+            animation: slideUp 0.3s ease;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--gray-light);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .modal-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--gray-light);
         }
 
         .modal-close {
@@ -530,22 +764,42 @@
             border: none;
             font-size: 1.5rem;
             cursor: pointer;
-            color: var(--gray-color);
+            color: var(--gray-medium);
+            padding: 0.25rem;
+            border-radius: var(--border-radius-sm);
+            transition: var(--transition);
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background-color: var(--gray-ultralight);
+            color: var(--danger-color);
         }
 
         /* Tabs */
         .tabs {
             display: flex;
-            border-bottom: 1px solid var(--light-gray);
-            margin-bottom: 20px;
+            border-bottom: 2px solid var(--gray-light);
+            margin-bottom: 2rem;
+            gap: 0.5rem;
         }
 
         .tab {
-            padding: 12px 25px;
+            padding: 1rem 1.5rem;
             cursor: pointer;
-            font-weight: 500;
+            font-weight: 600;
+            color: var(--gray-medium);
             transition: var(--transition);
             border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab:hover {
+            color: var(--primary-color);
         }
 
         .tab.active {
@@ -559,44 +813,71 @@
 
         .tab-content.active {
             display: block;
+            animation: fadeIn 0.3s ease;
         }
 
         /* Footer */
         footer {
-            background-color: var(--primary-dark);
+            background: linear-gradient(135deg, var(--dark-color), #1F2937);
             color: white;
-            padding: 30px 0;
-            margin-top: 50px;
+            padding: 3rem 0 2rem;
+            margin-top: 4rem;
         }
 
         .footer-content {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
             align-items: center;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-logo .logo-icon {
+            width: 2rem;
+            height: 2rem;
+            font-size: 1rem;
         }
 
         .footer-links {
             display: flex;
-            gap: 20px;
+            gap: 2rem;
+            justify-content: flex-end;
         }
 
         .footer-links a {
+            color: #D1D5DB;
             transition: var(--transition);
         }
 
         .footer-links a:hover {
-            color: var(--secondary-color);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .copyright {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #9CA3AF;
+            font-size: 0.875rem;
         }
 
         /* Loading Spinner */
         .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
+            border: 4px solid rgba(16, 185, 129, 0.1);
             border-radius: 50%;
             border-top: 4px solid var(--primary-color);
-            width: 40px;
-            height: 40px;
+            width: 3.5rem;
+            height: 3.5rem;
             animation: spin 1s linear infinite;
-            margin: 50px auto;
+            margin: 3rem auto;
         }
 
         @keyframes spin {
@@ -607,31 +888,120 @@
         /* Utility Classes */
         .text-center { text-align: center; }
         .text-right { text-align: right; }
-        .mb-1 { margin-bottom: 10px; }
-        .mb-2 { margin-bottom: 20px; }
-        .mb-3 { margin-bottom: 30px; }
-        .mt-1 { margin-top: 10px; }
-        .mt-2 { margin-top: 20px; }
-        .mt-3 { margin-top: 30px; }
+        .mb-1 { margin-bottom: 0.5rem; }
+        .mb-2 { margin-bottom: 1rem; }
+        .mb-3 { margin-bottom: 1.5rem; }
+        .mb-4 { margin-bottom: 2rem; }
+        .mt-1 { margin-top: 0.5rem; }
+        .mt-2 { margin-top: 1rem; }
+        .mt-3 { margin-top: 1.5rem; }
+        .mt-4 { margin-top: 2rem; }
         .hidden { display: none !important; }
         .flex { display: flex; }
         .flex-col { flex-direction: column; }
         .items-center { align-items: center; }
         .justify-between { justify-content: space-between; }
-        .gap-1 { gap: 10px; }
-        .gap-2 { gap: 20px; }
-        .gap-3 { gap: 30px; }
+        .gap-1 { gap: 0.5rem; }
+        .gap-2 { gap: 1rem; }
+        .gap-3 { gap: 1.5rem; }
+        .gap-4 { gap: 2rem; }
+        .w-full { width: 100%; }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.875rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: var(--primary-bg);
+            color: var(--primary-dark);
+            border: 1px solid var(--primary-light);
+        }
+
+        .badge-success {
+            background: #D1FAE5;
+            color: #065F46;
+            border-color: #34D399;
+        }
+
+        .badge-warning {
+            background: #FEF3C7;
+            color: #D97706;
+            border-color: #FBBF24;
+        }
+
+        /* Search Bar */
+        .search-container {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.875rem 1rem 0.875rem 3rem;
+            border: 2px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            font-size: 0.95rem;
+            transition: var(--transition);
+            background-color: white;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-medium);
+        }
 
         /* Responsive */
+        @media (max-width: 1024px) {
+            h1 { font-size: 2.25rem; }
+            h2 { font-size: 1.75rem; }
+            .container { padding: 0 1.25rem; }
+        }
+
         @media (max-width: 768px) {
             .header-content {
-                flex-direction: column;
-                gap: 15px;
+                flex-wrap: wrap;
+                gap: 1rem;
             }
 
             nav ul {
                 flex-wrap: wrap;
                 justify-content: center;
+                gap: 1rem;
+            }
+
+            .user-info {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 2rem;
+            }
+
+            .footer-links {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 1rem;
             }
 
             .dashboard-grid {
@@ -639,17 +1009,43 @@
             }
 
             .products-grid {
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             }
 
-            .form-row {
+            .modal-content {
+                padding: 1.5rem;
+                width: 95%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.5rem; }
+            .form-container { padding: 1.5rem; }
+            .card { padding: 1.5rem; }
+            .products-grid {
                 grid-template-columns: 1fr;
             }
+        }
 
-            .footer-content {
-                flex-direction: column;
-                gap: 20px;
-            }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--gray-ultralight);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
         }
     </style>
 </head>
@@ -657,10 +1053,12 @@
 <!-- Header -->
 <header>
     <div class="container header-content">
-        <div class="logo">
-            <i class="fas fa-leaf"></i>
-            <h1>EcoBazaar</h1>
-        </div>
+        <a href="#" onclick="loadView('home')" class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-leaf"></i>
+            </div>
+            <span class="logo-text">EcoBazaar</span>
+        </a>
 
         <nav>
             <ul id="main-nav">
@@ -686,15 +1084,27 @@
 
 <!-- Footer -->
 <footer>
-    <div class="container footer-content">
-        <div>
-            <p>&copy; 2024 EcoBazaar. All rights reserved.</p>
-            <p>Sustainable shopping for a better planet.</p>
-        </div>
-        <div class="footer-links">
-            <a href="#" onclick="loadView('about')">About Us</a>
-            <a href="#" onclick="loadView('contact')">Contact</a>
-            <a href="#" onclick="loadView('privacy')">Privacy Policy</a>
+    <div class="container">
+        <div class="footer-content">
+            <div>
+                <div class="footer-logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <span class="logo-text">EcoBazaar</span>
+                </div>
+                <p>Sustainable shopping for a better planet.</p>
+            </div>
+            <div class="footer-links">
+                <a href="#" onclick="loadView('about')">About Us</a>
+                <a href="#" onclick="loadView('contact')">Contact</a>
+                <a href="#" onclick="loadView('privacy')">Privacy</a>
+                <a href="#" onclick="loadView('products')">Products</a>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2024 EcoBazaar. All rights reserved.</p>
+                <p class="mt-1">Made with <i class="fas fa-heart" style="color: var(--danger-color);"></i> for our planet</p>
+            </div>
         </div>
     </div>
 </footer>
@@ -1040,29 +1450,71 @@
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
         notification.textContent = message;
+
+        // Set notification style
         notification.style.cssText = `
             position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            background-color: ${type === 'success' ? '#4caf50' : type === 'error' ? '#f44336' : '#2196f3'};
+            top: 1.5rem;
+            right: 1.5rem;
+            padding: 1rem 1.5rem;
+            background: ${type === 'success' ? 'linear-gradient(135deg, #10B981, #059669)' :
+                         type === 'error' ? 'linear-gradient(135deg, #EF4444, #DC2626)' :
+                         'linear-gradient(135deg, #3B82F6, #1D4ED8)'};
             color: white;
-            border-radius: 5px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
             z-index: 3000;
-            animation: slideIn 0.3s ease;
+            animation: slideInRight 0.3s ease, fadeOut 0.3s ease 4.7s forwards;
+            font-weight: 500;
+            min-width: 300px;
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-left: 4px solid ${type === 'success' ? '#34D399' :
+                               type === 'error' ? '#FCA5A5' :
+                               '#60A5FA'};
         `;
+
+        // Add icon based on type
+        const icon = document.createElement('i');
+        icon.className = `fas ${type === 'success' ? 'fa-check-circle' :
+                                   type === 'error' ? 'fa-exclamation-circle' :
+                                   'fa-info-circle'}`;
+        notification.prepend(icon);
 
         document.body.appendChild(notification);
 
         // Remove after 5 seconds
         setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => {
-                document.body.removeChild(notification);
-            }, 300);
+            if (notification.parentNode) {
+                notification.style.animation = 'slideOutRight 0.3s ease forwards';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }
         }, 5000);
     }
+
+    // Add animation styles
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
 
     // Image handling functions
     function handleImageUpload(event) {
@@ -1192,12 +1644,23 @@
         const navUl = document.getElementById('main-nav');
 
         if (currentUser) {
+            // Create user avatar with initials
+            const initials = currentUser.fullName
+                .split(' ')
+                .map(name => name[0])
+                .join('')
+                .toUpperCase()
+                .substring(0, 2);
+
             // Update user info display
             userInfoDiv.innerHTML = `
-                <span>${currentUser.fullName}</span>
-                <div class="role-badge">${currentUser.role}</div>
-                <button onclick="logout()" class="btn-danger">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+                <div class="user-avatar">${initials}</div>
+                <div class="user-details">
+                    <div class="user-name">${currentUser.fullName}</div>
+                    <div class="role-badge">${currentUser.role}</div>
+                </div>
+                <button onclick="logout()" class="btn-danger btn-sm">
+                    <i class="fas fa-sign-out-alt"></i>
                 </button>
             `;
 
@@ -1213,22 +1676,22 @@
             // Role-specific navigation
             const roleNav = {
                 'USER': [
-                    { text: 'My Dashboard', view: 'user-dashboard', icon: 'fas fa-tachometer-alt' },
-                    { text: 'My Cart', view: 'cart', icon: 'fas fa-shopping-cart' },
-                    { text: 'My Orders', view: 'orders', icon: 'fas fa-box' },
+                    { text: 'Dashboard', view: 'user-dashboard', icon: 'fas fa-tachometer-alt' },
+                    { text: 'Cart', view: 'cart', icon: 'fas fa-shopping-cart' },
+                    { text: 'Orders', view: 'orders', icon: 'fas fa-box' },
                     { text: 'Wishlist', view: 'wishlist', icon: 'fas fa-heart' }
                 ],
                 'SELLER': [
-                    { text: 'Seller Dashboard', view: 'seller-dashboard', icon: 'fas fa-chart-line' },
-                    { text: 'My Products', view: 'seller-products', icon: 'fas fa-boxes' },
+                    { text: 'Dashboard', view: 'seller-dashboard', icon: 'fas fa-chart-line' },
+                    { text: 'Products', view: 'seller-products', icon: 'fas fa-boxes' },
                     { text: 'Add Product', view: 'add-product', icon: 'fas fa-plus-circle' },
                     { text: 'Sales', view: 'seller-orders', icon: 'fas fa-receipt' }
                 ],
                 'ADMIN': [
-                    { text: 'Admin Dashboard', view: 'admin-dashboard', icon: 'fas fa-cog' },
-                    { text: 'Pending Products', view: 'pending-products', icon: 'fas fa-clock' },
-                    { text: 'All Orders', view: 'all-orders', icon: 'fas fa-list' },
-                    { text: 'Manage Categories', view: 'categories', icon: 'fas fa-tags' }
+                    { text: 'Dashboard', view: 'admin-dashboard', icon: 'fas fa-cog' },
+                    { text: 'Pending', view: 'pending-products', icon: 'fas fa-clock' },
+                    { text: 'Orders', view: 'all-orders', icon: 'fas fa-list' },
+                    { text: 'Categories', view: 'categories', icon: 'fas fa-tags' }
                 ]
             };
 
@@ -1256,10 +1719,10 @@
         } else {
             // User not logged in
             userInfoDiv.innerHTML = `
-                <button onclick="loadView('login')" class="btn-outline">
+                <button onclick="loadView('login')" class="btn-outline btn-sm">
                     <i class="fas fa-sign-in-alt"></i> Login
                 </button>
-                <button onclick="loadView('register')" class="btn">
+                <button onclick="loadView('register')" class="btn btn-sm">
                     <i class="fas fa-user-plus"></i> Register
                 </button>
             `;
@@ -1364,9 +1827,14 @@
             console.error(`Error loading view ${view}:`, error);
             contentDiv.innerHTML = `
                 <div class="card">
-                    <h3><i class="fas fa-exclamation-triangle"></i> Error</h3>
-                    <p>Failed to load content: ${error.message}</p>
-                    <button onclick="loadView('home')" class="btn mt-2">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                    <h3>Error Loading Content</h3>
+                    <p>${error.message}</p>
+                    <button onclick="loadView('home')" class="btn mt-3">
                         <i class="fas fa-home"></i> Return to Home
                     </button>
                 </div>
@@ -1379,31 +1847,19 @@
         const navLinks = document.querySelectorAll('#main-nav a');
         navLinks.forEach(link => {
             link.classList.remove('active');
-            if (link.textContent.includes(getNavTextForView(currentView))) {
+            const linkText = link.textContent.toLowerCase().replace(/\s+/g, '');
+            const viewText = currentView.toLowerCase().replace(/\s+/g, '');
+
+            // Check if this link corresponds to current view
+            if (linkText.includes(viewText) ||
+                (currentView === 'home' && linkText.includes('home')) ||
+                (currentView === 'products' && linkText.includes('products')) ||
+                (currentView === 'user-dashboard' && linkText.includes('dashboard')) ||
+                (currentView === 'seller-dashboard' && linkText.includes('dashboard')) ||
+                (currentView === 'admin-dashboard' && linkText.includes('dashboard'))) {
                 link.classList.add('active');
             }
         });
-    }
-
-    function getNavTextForView(view) {
-        const viewMap = {
-            'home': 'Home',
-            'products': 'Products',
-            'user-dashboard': 'My Dashboard',
-            'seller-dashboard': 'Seller Dashboard',
-            'admin-dashboard': 'Admin Dashboard',
-            'cart': 'My Cart',
-            'orders': 'My Orders',
-            'wishlist': 'Wishlist',
-            'seller-products': 'My Products',
-            'add-product': 'Add Product',
-            'seller-orders': 'Sales',
-            'pending-products': 'Pending Products',
-            'all-orders': 'All Orders',
-            'categories': 'Manage Categories',
-            'about': 'About'
-        };
-        return viewMap[view] || '';
     }
 
     // Authentication functions
@@ -1484,8 +1940,6 @@
 
     function closeProductFormModal() {
         document.getElementById('productFormModal').classList.remove('active');
-        // Don't clear image from localStorage when closing modal
-        // It will persist for the session
     }
 
     function openCheckoutModal() {
@@ -1508,7 +1962,7 @@
         return `
             <div class="text-center mb-3">
                 <h1>Welcome to EcoBazaar</h1>
-                <p class="mb-2">Sustainable shopping for a better planet</p>
+                <p class="mb-2 text-lg">Sustainable shopping for a better planet</p>
                 ${!currentUser ? `
                     <div class="flex gap-2 justify-center">
                         <button onclick="loadView('register')" class="btn">
@@ -1524,7 +1978,12 @@
             ${currentUser ? `
                 <div class="dashboard-grid">
                     <div class="card">
-                        <h3><i class="fas fa-leaf"></i> Your Eco Impact</h3>
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <i class="fas fa-leaf"></i>
+                            </div>
+                            <h3>Your Eco Impact</h3>
+                        </div>
                         <div class="stats-grid">
                             <div class="stat-item">
                                 <div class="stat-value" id="carbonSaved">0</div>
@@ -1538,7 +1997,12 @@
                     </div>
 
                     <div class="card">
-                        <h3><i class="fas fa-shopping-cart"></i> Quick Actions</h3>
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <h3>Quick Actions</h3>
+                        </div>
                         <div class="flex flex-col gap-2">
                             ${currentUser.role === 'USER' ? `
                                 <button onclick="loadView('cart')" class="btn">
@@ -1591,7 +2055,7 @@
                                     <div class="carbon-badge carbon-${product.ecoRating ? product.ecoRating.toLowerCase() : 'b'}">
                                         <i class="fas fa-cloud"></i> ${product.carbonFootprint} kg CO2e
                                     </div>
-                                    <button onclick="viewProduct(${product.id})" class="btn mt-2" style="width: 100%;">
+                                    <button onclick="viewProduct(${product.id})" class="btn mt-2 w-full">
                                         <i class="fas fa-eye"></i> View Details
                                     </button>
                                 </div>
@@ -1611,7 +2075,12 @@
             </div>
 
             <div class="card mt-3">
-                <h3><i class="fas fa-globe-americas"></i> About EcoBazaar</h3>
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-globe-americas"></i>
+                    </div>
+                    <h3>About EcoBazaar</h3>
+                </div>
                 <p>EcoBazaar is a sustainable e-commerce platform that helps you make environmentally conscious shopping decisions. Every product on our platform displays its carbon footprint, helping you understand the environmental impact of your purchases.</p>
                 <div class="stats-grid mt-2">
                     <div class="stat-item">
@@ -1641,7 +2110,7 @@
                         <input type="password" id="login-password" class="form-control" required>
                     </div>
                     <div class="form-group">
-                        <button type="submit" class="btn" style="width: 100%;">
+                        <button type="submit" class="btn w-full">
                             <i class="fas fa-sign-in-alt"></i> Login
                         </button>
                     </div>
@@ -1690,7 +2159,7 @@
                         <small class="text-gray">Note: ADMIN accounts cannot be created through registration</small>
                     </div>
                     <div class="form-group">
-                        <button type="submit" class="btn" style="width: 100%;">
+                        <button type="submit" class="btn w-full">
                             <i class="fas fa-user-plus"></i> Create Account
                         </button>
                     </div>
@@ -1714,7 +2183,12 @@
             console.error('Error loading seller products:', error);
             return `
                 <div class="card">
-                    <h3><i class="fas fa-boxes"></i> My Products</h3>
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-boxes"></i>
+                        </div>
+                        <h3>My Products</h3>
+                    </div>
                     <p>Error loading products: ${error.message}</p>
                     <button onclick="loadView('seller-products')" class="btn mt-2">
                         <i class="fas fa-redo"></i> Retry
@@ -1750,7 +2224,7 @@
                             ${sellerProducts.map(product => `
                                 <tr>
                                     <td>
-                                        <div style="width: 60px; height: 60px; background: #f5f5f5; border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                        <div style="width: 60px; height: 60px; background: var(--gray-ultralight); border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                                             ${product.imageUrl ?
                                                 `<img src="${product.imageUrl}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;">` :
                                                 `<i class="fas fa-leaf" style="color: var(--primary-color);"></i>`
@@ -1759,7 +2233,7 @@
                                     </td>
                                     <td>
                                         <div><strong>${product.name}</strong></div>
-                                        <div style="font-size: 0.9rem; color: var(--gray-color);">${product.description.substring(0, 50)}${product.description.length > 50 ? '...' : ''}</div>
+                                        <div style="font-size: 0.9rem; color: var(--gray-medium);">${product.description.substring(0, 50)}${product.description.length > 50 ? '...' : ''}</div>
                                     </td>
                                     <td>${product.category}</td>
                                     <td>$${product.price.toFixed(2)}</td>
@@ -1778,13 +2252,13 @@
                                     </td>
                                     <td>
                                         <div class="flex gap-1">
-                                            <button onclick="viewProduct(${product.id})" class="btn" style="padding: 5px 10px; font-size: 0.9rem;">
+                                            <button onclick="viewProduct(${product.id})" class="btn btn-sm">
                                                 <i class="fas fa-eye"></i>
                                             </button>
-                                            <button onclick="loadView('edit-product', {id: ${product.id}})" class="btn-secondary" style="padding: 5px 10px; font-size: 0.9rem;">
+                                            <button onclick="loadView('edit-product', {id: ${product.id}})" class="btn-secondary btn-sm">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <button onclick="deleteSellerProduct(${product.id})" class="btn-danger" style="padding: 5px 10px; font-size: 0.9rem;">
+                                            <button onclick="deleteSellerProduct(${product.id})" class="btn-danger btn-sm">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </div>
@@ -1811,7 +2285,12 @@
                 </div>
             ` : `
                 <div class="card text-center">
-                    <h3>No Products Yet</h3>
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-boxes"></i>
+                        </div>
+                        <h3>No Products Yet</h3>
+                    </div>
                     <p>You haven't added any products to your store yet.</p>
                     <button onclick="loadView('add-product')" class="btn mt-2">
                         <i class="fas fa-plus"></i> Add Your First Product
@@ -1847,7 +2326,12 @@
 
                 <div class="dashboard-grid">
                     <div class="card">
-                        <h3><i class="fas fa-chart-bar"></i> Sales Overview</h3>
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <h3>Sales Overview</h3>
+                        </div>
                         <div class="stats-grid">
                             <div class="stat-item">
                                 <div class="stat-value">${dashboard.stats?.totalProducts || 0}</div>
@@ -1869,7 +2353,12 @@
                     </div>
 
                     <div class="card">
-                        <h3><i class="fas fa-dollar-sign"></i> Revenue Breakdown</h3>
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <h3>Revenue Breakdown</h3>
+                        </div>
                         ${dashboard.revenueBreakdown ? `
                             <div class="stats-grid">
                                 <div class="stat-item">
@@ -1891,7 +2380,12 @@
 
                 ${dashboard.topProducts && dashboard.topProducts.length > 0 ? `
                     <div class="card mt-3">
-                        <h3><i class="fas fa-trophy"></i> Top Products</h3>
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <h3>Top Products</h3>
+                        </div>
                         <div class="table-container">
                             <table>
                                 <thead>
@@ -1907,7 +2401,7 @@
                                         <tr>
                                             <td>
                                                 <div class="flex items-center gap-2">
-                                                    <div style="width: 40px; height: 40px; background: #f5f5f5; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                                    <div style="width: 40px; height: 40px; background: var(--gray-ultralight); border-radius: 4px; display: flex; align-items: center; justify-content: center;">
                                                         ${product.image ? `<img src="${product.image}" alt="${product.productName}" style="width: 100%; height: 100%; object-fit: cover;">` : '<i class="fas fa-leaf"></i>'}
                                                     </div>
                                                     <div>${product.productName}</div>
@@ -1930,7 +2424,12 @@
 
                 ${dashboard.salesByCategory ? `
                     <div class="card mt-3">
-                        <h3><i class="fas fa-chart-pie"></i> Sales by Category</h3>
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                            <h3>Sales by Category</h3>
+                        </div>
                         <div class="stats-grid">
                             ${Object.entries(dashboard.salesByCategory).map(([category, amount]) => `
                                 <div class="stat-item">
@@ -1944,7 +2443,12 @@
 
                 ${dashboard.recentOrders && dashboard.recentOrders.length > 0 ? `
                     <div class="card mt-3">
-                        <h3><i class="fas fa-history"></i> Recent Orders</h3>
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <h3>Recent Orders</h3>
+                        </div>
                         <div class="table-container">
                             <table>
                                 <thead>
@@ -1979,7 +2483,12 @@
         } catch (error) {
             return `
                 <div class="card">
-                    <h3><i class="fas fa-chart-line"></i> Seller Dashboard</h3>
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3>Seller Dashboard</h3>
+                    </div>
                     <p>Error loading dashboard: ${error.message}</p>
                     <button onclick="loadView('seller-orders')" class="btn mt-2">
                         <i class="fas fa-redo"></i> Retry
@@ -2001,7 +2510,12 @@
 
                 <div class="dashboard-grid">
                     <div class="card">
-                        <h3><i class="fas fa-chart-bar"></i> Business Overview</h3>
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <h3>Business Overview</h3>
+                        </div>
                         <div class="stats-grid">
                             <div class="stat-item">
                                 <div class="stat-value">${dashboard.stats?.totalProducts || 0}</div>
@@ -2023,7 +2537,12 @@
                     </div>
 
                     <div class="card">
-                        <h3><i class="fas fa-leaf"></i> Carbon Impact</h3>
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <i class="fas fa-leaf"></i>
+                            </div>
+                            <h3>Carbon Impact</h3>
+                        </div>
                         <div class="stats-grid">
                             <div class="stat-item">
                                 <div class="stat-value">${dashboard.stats?.averageCarbonPerProduct?.toFixed(2) || '0.00'}</div>
@@ -2040,11 +2559,16 @@
                 <div class="flex gap-3 mt-3">
                     ${dashboard.topProducts && dashboard.topProducts.length > 0 ? `
                         <div class="card" style="flex: 1;">
-                            <h3><i class="fas fa-trophy"></i> Top Products</h3>
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <i class="fas fa-trophy"></i>
+                                </div>
+                                <h3>Top Products</h3>
+                            </div>
                             <div style="max-height: 300px; overflow-y: auto;">
                                 ${dashboard.topProducts.map(product => `
-                                    <div class="flex items-center gap-2 mb-2 p-2" style="background: #f9f9f9; border-radius: var(--border-radius);">
-                                        <div style="width: 40px; height: 40px; background: #f5f5f5; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                    <div class="flex items-center gap-2 mb-2 p-2" style="background: var(--gray-ultralight); border-radius: var(--border-radius);">
+                                        <div style="width: 40px; height: 40px; background: var(--gray-ultralight); border-radius: 4px; display: flex; align-items: center; justify-content: center;">
                                             ${product.image ? `<img src="${product.image}" alt="${product.productName}" style="width: 100%; height: 100%; object-fit: cover;">` : '<i class="fas fa-leaf"></i>'}
                                         </div>
                                         <div style="flex: 1;">
@@ -2059,10 +2583,15 @@
 
                     ${dashboard.salesByCategory ? `
                         <div class="card" style="flex: 1;">
-                            <h3><i class="fas fa-chart-pie"></i> Sales by Category</h3>
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <i class="fas fa-chart-pie"></i>
+                                </div>
+                                <h3>Sales by Category</h3>
+                            </div>
                             <div style="max-height: 300px; overflow-y: auto;">
                                 ${Object.entries(dashboard.salesByCategory).map(([category, amount]) => `
-                                    <div class="flex justify-between items-center mb-2 p-2" style="background: #f9f9f9; border-radius: var(--border-radius);">
+                                    <div class="flex justify-between items-center mb-2 p-2" style="background: var(--gray-ultralight); border-radius: var(--border-radius);">
                                         <div>${category}</div>
                                         <div><strong>$${amount.toFixed(2)}</strong></div>
                                     </div>
@@ -2073,7 +2602,12 @@
                 </div>
 
                 <div class="card mt-3">
-                    <h3><i class="fas fa-rocket"></i> Quick Actions</h3>
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <h3>Quick Actions</h3>
+                    </div>
                     <div class="flex gap-2">
                         <button onclick="loadView('add-product')" class="btn">
                             <i class="fas fa-plus"></i> Add Product
@@ -2090,7 +2624,12 @@
         } catch (error) {
             return `
                 <div class="card">
-                    <h3><i class="fas fa-chart-line"></i> Seller Dashboard</h3>
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3>Seller Dashboard</h3>
+                    </div>
                     <p>Error loading dashboard: ${error.message}</p>
                     <button onclick="loadView('seller-dashboard')" class="btn mt-2">
                         <i class="fas fa-redo"></i> Retry
@@ -2193,7 +2732,7 @@
                     </div>
 
                     <div class="form-group">
-                        <button type="submit" class="btn" style="width: 100%;">
+                        <button type="submit" class="btn w-full">
                             <i class="fas fa-plus-circle"></i> Add Product
                         </button>
                     </div>
@@ -2266,7 +2805,12 @@
         } catch (error) {
             return `
                 <div class="card">
-                    <h3>Error Loading Product</h3>
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h3>Error Loading Product</h3>
+                    </div>
                     <p>${error.message}</p>
                     <button onclick="loadView('seller-products')" class="btn mt-2">
                         <i class="fas fa-arrow-left"></i> Back to Products
@@ -2362,7 +2906,7 @@
                     </div>
 
                     <div class="form-group">
-                        <button type="submit" class="btn" style="width: 100%;">
+                        <button type="submit" class="btn w-full">
                             <i class="fas fa-save"></i> Update Product
                         </button>
                     </div>
@@ -2443,7 +2987,7 @@
                                 <tr>
                                     <td>
                                         <div class="flex items-center gap-2">
-                                            <div style="width: 60px; height: 60px; background: #f5f5f5; border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                            <div style="width: 60px; height: 60px; background: var(--gray-ultralight); border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                                                 ${product.imageUrl ?
                                                     `<img src="${product.imageUrl}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;">` :
                                                     `<i class="fas fa-leaf" style="color: var(--primary-color);"></i>`
@@ -2451,7 +2995,7 @@
                                             </div>
                                             <div>
                                                 <div><strong>${product.name}</strong></div>
-                                                <div style="font-size: 0.9rem; color: var(--gray-color);">${product.description.substring(0, 50)}${product.description.length > 50 ? '...' : ''}</div>
+                                                <div style="font-size: 0.9rem; color: var(--gray-medium);">${product.description.substring(0, 50)}${product.description.length > 50 ? '...' : ''}</div>
                                             </div>
                                         </div>
                                     </td>
@@ -2466,10 +3010,10 @@
                                     <td>${new Date(product.createdAt).toLocaleDateString()}</td>
                                     <td>
                                         <div class="flex gap-1">
-                                            <button onclick="viewProduct(${product.id})" class="btn" style="padding: 5px 10px; font-size: 0.9rem;">
+                                            <button onclick="viewProduct(${product.id})" class="btn btn-sm">
                                                 <i class="fas fa-eye"></i> View
                                             </button>
-                                            <button onclick="verifyProduct(${product.id})" class="btn-secondary" style="padding: 5px 10px; font-size: 0.9rem;">
+                                            <button onclick="verifyProduct(${product.id})" class="btn-secondary btn-sm">
                                                 <i class="fas fa-check-circle"></i> Verify
                                             </button>
                                         </div>
@@ -2495,7 +3039,12 @@
                 </div>
             ` : `
                 <div class="card text-center">
-                    <h3>No Pending Products</h3>
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h3>No Pending Products</h3>
+                    </div>
                     <p>All products have been verified.</p>
                     <button onclick="loadView('admin-dashboard')" class="btn mt-2">
                         <i class="fas fa-tachometer-alt"></i> Go to Admin Dashboard
@@ -2568,7 +3117,7 @@
                                     <td>#${order.id}</td>
                                     <td>
                                         <div>${order.user?.fullName || 'Unknown'}</div>
-                                        <div style="font-size: 0.9rem; color: var(--gray-color);">${order.user?.email || ''}</div>
+                                        <div style="font-size: 0.9rem; color: var(--gray-medium);">${order.user?.email || ''}</div>
                                     </td>
                                     <td>${new Date(order.createdAt).toLocaleDateString()}</td>
                                     <td>$${order.totalAmount?.toFixed(2)}</td>
@@ -2580,10 +3129,10 @@
                                     </td>
                                     <td>
                                         <div class="flex gap-1">
-                                            <button onclick="viewOrder(${order.id})" class="btn" style="padding: 5px 10px; font-size: 0.9rem;">
+                                            <button onclick="viewOrder(${order.id})" class="btn btn-sm">
                                                 <i class="fas fa-eye"></i>
                                             </button>
-                                            <button onclick="updateOrderStatusPrompt(${order.id})" class="btn-secondary" style="padding: 5px 10px; font-size: 0.9rem;">
+                                            <button onclick="updateOrderStatusPrompt(${order.id})" class="btn-secondary btn-sm">
                                                 <i class="fas fa-edit"></i>
                                             </button>
                                         </div>
@@ -2595,7 +3144,12 @@
                 </div>
             ` : `
                 <div class="card">
-                    <h3>No Orders Yet</h3>
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <h3>No Orders Yet</h3>
+                    </div>
                     <p>No orders have been placed on the platform yet.</p>
                 </div>
             `}
@@ -2604,7 +3158,7 @@
 
     async function viewOrder(orderId) {
         try {
-            const order = await apiService.getOrderById(orderId);
+            const order = await apiService.getUserOrders(orderId);
 
             const content = `
                 <h3>Order Details #${order.id}</h3>
@@ -2612,13 +3166,13 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Customer</label>
-                        <div class="form-control" style="background: #f5f5f5;">
+                        <div class="form-control" style="background: var(--gray-ultralight);">
                             ${order.user?.fullName || 'Unknown'} (${order.user?.email || 'No email'})
                         </div>
                     </div>
                     <div class="form-group">
                         <label>Order Date</label>
-                        <div class="form-control" style="background: #f5f5f5;">
+                        <div class="form-control" style="background: var(--gray-ultralight);">
                             ${new Date(order.createdAt).toLocaleString()}
                         </div>
                     </div>
@@ -2627,13 +3181,13 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Total Amount</label>
-                        <div class="form-control" style="background: #f5f5f5; font-weight: bold; color: var(--primary-color);">
+                        <div class="form-control" style="background: var(--gray-ultralight); font-weight: bold; color: var(--primary-color);">
                             $${order.totalAmount?.toFixed(2)}
                         </div>
                     </div>
                     <div class="form-group">
                         <label>Total Carbon</label>
-                        <div class="form-control" style="background: #f5f5f5;">
+                        <div class="form-control" style="background: var(--gray-ultralight);">
                             ${order.totalCarbonFootprint} kg CO2e
                         </div>
                     </div>
@@ -2642,13 +3196,13 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Shipping Address</label>
-                        <div class="form-control" style="background: #f5f5f5;">
+                        <div class="form-control" style="background: var(--gray-ultralight);">
                             ${order.shippingAddress}
                         </div>
                     </div>
                     <div class="form-group">
                         <label>Phone Number</label>
-                        <div class="form-control" style="background: #f5f5f5;">
+                        <div class="form-control" style="background: var(--gray-ultralight);">
                             ${order.phoneNumber}
                         </div>
                     </div>
@@ -2657,13 +3211,13 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Payment Method</label>
-                        <div class="form-control" style="background: #f5f5f5;">
+                        <div class="form-control" style="background: var(--gray-ultralight);">
                             ${order.paymentMethod}
                         </div>
                     </div>
                     <div class="form-group">
                         <label>Status</label>
-                        <div class="form-control" style="background: #f5f5f5;">
+                        <div class="form-control" style="background: var(--gray-ultralight);">
                             <span class="status-badge status-${order.status?.toLowerCase()}">
                                 ${order.status}
                             </span>
@@ -2688,7 +3242,7 @@
                                 <tr>
                                     <td>
                                         <div class="flex items-center gap-2">
-                                            <div style="width: 40px; height: 40px; background: #f5f5f5; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                            <div style="width: 40px; height: 40px; background: var(--gray-ultralight); border-radius: 4px; display: flex; align-items: center; justify-content: center;">
                                                 ${item.product?.imageUrl ?
                                                     `<img src="${item.product.imageUrl}" alt="${item.productNameSnapshot}" style="width: 100%; height: 100%; object-fit: cover;">` :
                                                     `<i class="fas fa-leaf"></i>`
@@ -2739,7 +3293,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <button type="submit" class="btn" style="width: 100%;">
+                    <button type="submit" class="btn w-full">
                         <i class="fas fa-save"></i> Update Status
                     </button>
                 </div>
@@ -2801,10 +3355,10 @@
                                 <td>${category.displayOrder}</td>
                                 <td>
                                     <div class="flex gap-1">
-                                        <button onclick="showEditCategoryForm(${category.id})" class="btn-secondary" style="padding: 5px 10px; font-size: 0.9rem;">
+                                        <button onclick="showEditCategoryForm(${category.id})" class="btn-secondary btn-sm">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button onclick="deleteCategory(${category.id})" class="btn-danger" style="padding: 5px 10px; font-size: 0.9rem;">
+                                        <button onclick="deleteCategory(${category.id})" class="btn-danger btn-sm">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -2835,7 +3389,7 @@
                     <small>Use Font Awesome icon class names (without the 'fa-' prefix)</small>
                 </div>
                 <div class="form-group">
-                    <button type="submit" class="btn" style="width: 100%;">
+                    <button type="submit" class="btn w-full">
                         <i class="fas fa-plus"></i> Add Category
                     </button>
                 </div>
@@ -2885,7 +3439,7 @@
                     <input type="text" id="editCategoryIcon" class="form-control" value="${category.icon}" placeholder="e.g., fa-tshirt, fa-home">
                 </div>
                 <div class="form-group">
-                    <button type="submit" class="btn" style="width: 100%;">
+                    <button type="submit" class="btn w-full">
                         <i class="fas fa-save"></i> Update Category
                     </button>
                 </div>
@@ -2979,7 +3533,12 @@
                 </div>
             ` : `
                 <div class="card text-center">
-                    <h3>Your wishlist is empty</h3>
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <h3>Your wishlist is empty</h3>
+                    </div>
                     <p>Add some products to your wishlist!</p>
                     <button onclick="loadView('products')" class="btn mt-2">
                         <i class="fas fa-store"></i> Browse Products
@@ -3042,7 +3601,7 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <button onclick="viewOrder(${order.id})" class="btn" style="padding: 5px 10px; font-size: 0.9rem;">
+                                        <button onclick="viewOrder(${order.id})" class="btn btn-sm">
                                             <i class="fas fa-eye"></i> View
                                         </button>
                                     </td>
@@ -3067,7 +3626,12 @@
                 </div>
             ` : `
                 <div class="card text-center">
-                    <h3>No Orders Yet</h3>
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <h3>No Orders Yet</h3>
+                    </div>
                     <p>You haven't placed any orders yet.</p>
                     <button onclick="loadView('products')" class="btn mt-2">
                         <i class="fas fa-store"></i> Start Shopping
@@ -3081,7 +3645,12 @@
         if (!currentUser || currentUser.role !== 'USER') {
             return `
                 <div class="card text-center">
-                    <h3><i class="fas fa-shopping-cart"></i> Shopping Cart</h3>
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <h3>Shopping Cart</h3>
+                    </div>
                     <p>Please login as a user to view your cart.</p>
                     <button onclick="loadView('login')" class="btn mt-2">
                         <i class="fas fa-sign-in-alt"></i> Login
@@ -3116,7 +3685,7 @@
                                 <tr>
                                     <td>
                                         <div class="flex items-center gap-2">
-                                            <div style="width: 50px; height: 50px; background: #f5f5f5; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                            <div style="width: 50px; height: 50px; background: var(--gray-ultralight); border-radius: 4px; display: flex; align-items: center; justify-content: center;">
                                                 ${item.imageUrl ?
                                                     `<img src="${item.imageUrl}" alt="${item.productName}" style="width: 100%; height: 100%; object-fit: cover;">` :
                                                     `<i class="fas fa-leaf" style="color: var(--primary-color);"></i>`
@@ -3124,7 +3693,7 @@
                                             </div>
                                             <div>
                                                 <div><strong>${item.productName}</strong></div>
-                                                <div style="font-size: 0.9rem; color: var(--gray-color);">${item.category}</div>
+                                                <div style="font-size: 0.9rem; color: var(--gray-medium);">${item.category}</div>
                                             </div>
                                         </div>
                                     </td>
@@ -3165,7 +3734,12 @@
                 </div>
             ` : `
                 <div class="card text-center">
-                    <h3>Your cart is empty</h3>
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <h3>Your cart is empty</h3>
+                    </div>
                     <p>Add some eco-friendly products to your cart!</p>
                     <button onclick="loadView('products')" class="btn mt-2">
                         <i class="fas fa-store"></i> Browse Products
@@ -3196,7 +3770,7 @@
                     <p>Total Amount: $${cart.items?.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2) || '0.00'}</p>
                     <p>Total Carbon: ${cart.items?.reduce((sum, item) => sum + (item.carbonFootprint * item.quantity), 0).toFixed(2) || '0.00'} kg CO2e</p>
                 </div>
-                <button onclick="loadView('cart')" class="btn-outline mt-3" style="width: 100%;">
+                <button onclick="loadView('cart')" class="btn-outline mt-3 w-full">
                     <i class="fas fa-arrow-left"></i> Back to Cart
                 </button>
             </div>
@@ -3247,7 +3821,7 @@
                 </div>
 
                 <div class="form-group mt-3">
-                    <button type="submit" class="btn" style="width: 100%;">
+                    <button type="submit" class="btn w-full">
                         <i class="fas fa-check-circle"></i> Place Order
                     </button>
                 </div>
@@ -3292,7 +3866,12 @@
 
             <div class="dashboard-grid">
                 <div class="card">
-                    <h3><i class="fas fa-leaf"></i> Eco Impact</h3>
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        <h3>Eco Impact</h3>
+                    </div>
                     <div class="stats-grid">
                         <div class="stat-item">
                             <div class="stat-value">${dashboardData.stats?.carbonSaved || 0}</div>
@@ -3308,581 +3887,641 @@
                         </div>
                         <div class="stat-item">
                             <div class="stat-value">${dashboardData.stats?.totalOrders || 0}</div>
-                            <div class="stat-label">Total Orders</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h3><i class="fas fa-trophy"></i> Achievements</h3>
-                    ${dashboardData.achievements && dashboardData.achievements.length > 0 ? `
-                        <div style="max-height: 300px; overflow-y: auto;">
-                            ${dashboardData.achievements.map(ach => `
-                                <div class="flex items-center gap-2 mb-2 p-2" style="background: #f9f9f9; border-radius: var(--border-radius);">
-                                    <div style="font-size: 1.5rem;">${ach.icon}</div>
-                                    <div style="flex: 1;">
-                                        <div><strong>${ach.name}</strong></div>
-                                        <div style="font-size: 0.9rem;">${ach.description}</div>
-                                    </div>
-                                    <div>
-                                        ${ach.unlocked ?
-                                            `<i class="fas fa-check-circle" style="color: var(--success-color);"></i>` :
-                                            `${ach.currentValue}/${ach.requiredValue}`
-                                        }
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : `<p>No achievements yet. Start shopping to earn achievements!</p>`}
-                </div>
-            </div>
-
-            <div class="card mt-3">
-                <h3><i class="fas fa-chart-line"></i> Carbon Trend</h3>
-                <p>Your carbon footprint over time</p>
-                <div style="height: 200px; background: #f5f5f5; border-radius: var(--border-radius); display: flex; align-items: flex-end; padding: 20px; margin-top: 20px;">
-                    ${dashboardData.carbonTrend && dashboardData.carbonTrend.carbonData ?
-                        dashboardData.carbonTrend.carbonData.map((value, index) => `
-                            <div style="flex: 1; margin: 0 5px; display: flex; flex-direction: column; align-items: center;">
-                                <div style="width: 30px; background: var(--primary-color); height: ${Math.min(value * 5, 150)}px; border-radius: 4px 4px 0 0;"></div>
-                                <div style="margin-top: 10px; font-size: 0.8rem;">${dashboardData.carbonTrend.labels[index] || 'Month'}</div>
+                                <div class="stat-label">Total Orders</div>
                             </div>
-                        `).join('') :
-                        '<p style="text-align: center; width: 100%;">No carbon data available</p>'
-                    }
-                </div>
-            </div>
-
-            <div class="flex gap-3 mt-3">
-                <div class="card" style="flex: 1;">
-                    <h3><i class="fas fa-shopping-cart"></i> Quick Actions</h3>
-                    <div class="flex flex-col gap-2">
-                        <button onclick="loadView('cart')" class="btn">
-                            <i class="fas fa-shopping-cart"></i> View Cart
-                        </button>
-                        <button onclick="loadView('orders')" class="btn-outline">
-                            <i class="fas fa-box"></i> My Orders
-                        </button>
-                        <button onclick="loadView('wishlist')" class="btn-outline">
-                            <i class="fas fa-heart"></i> My Wishlist
-                        </button>
-                    </div>
-                </div>
-
-                ${dashboardData.personalizedTips && dashboardData.personalizedTips.length > 0 ? `
-                    <div class="card" style="flex: 1;">
-                        <h3><i class="fas fa-lightbulb"></i> Eco Tips</h3>
-                        <div style="max-height: 200px; overflow-y: auto;">
-                            ${dashboardData.personalizedTips.map(tip => `
-                                <div class="flex items-start gap-2 mb-2 p-2" style="background: #f9f9f9; border-radius: var(--border-radius);">
-                                    <div style="font-size: 1.2rem;">${tip.icon}</div>
-                                    <div>${tip.message}</div>
-                                </div>
-                            `).join('')}
                         </div>
                     </div>
-                ` : ''}
-            </div>
-        `;
-    }
 
-    async function renderAdminDashboard() {
-        if (!currentUser || currentUser.role !== 'ADMIN') {
-            return `<div class="card"><p>Access denied. Admin dashboard is only for ADMIN role.</p></div>`;
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <h3>Achievements</h3>
+                        </div>
+                        ${dashboardData.achievements && dashboardData.achievements.length > 0 ? `
+                            <div style="max-height: 300px; overflow-y: auto;">
+                                ${dashboardData.achievements.map(ach => `
+                                    <div class="flex items-center gap-2 mb-2 p-2" style="background: var(--gray-ultralight); border-radius: var(--border-radius);">
+                                        <div style="font-size: 1.5rem;">${ach.icon}</div>
+                                        <div style="flex: 1;">
+                                            <div><strong>${ach.name}</strong></div>
+                                            <div style="font-size: 0.9rem;">${ach.description}</div>
+                                        </div>
+                                        <div>
+                                            ${ach.unlocked ?
+                                                `<i class="fas fa-check-circle" style="color: var(--success-color);"></i>` :
+                                                `${ach.currentValue}/${ach.requiredValue}`
+                                            }
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : `<p>No achievements yet. Start shopping to earn achievements!</p>`}
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3>Carbon Trend</h3>
+                    </div>
+                    <p>Your carbon footprint over time</p>
+                    <div style="height: 200px; background: var(--gray-ultralight); border-radius: var(--border-radius); display: flex; align-items: flex-end; padding: 20px; margin-top: 20px;">
+                        ${dashboardData.carbonTrend && dashboardData.carbonTrend.carbonData ?
+                            dashboardData.carbonTrend.carbonData.map((value, index) => `
+                                <div style="flex: 1; margin: 0 5px; display: flex; flex-direction: column; align-items: center;">
+                                    <div style="width: 30px; background: var(--primary-color); height: ${Math.min(value * 5, 150)}px; border-radius: 4px 4px 0 0;"></div>
+                                    <div style="margin-top: 10px; font-size: 0.8rem;">${dashboardData.carbonTrend.labels[index] || 'Month'}</div>
+                                </div>
+                            `).join('') :
+                            '<p style="text-align: center; width: 100%;">No carbon data available</p>'
+                        }
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-3">
+                    <div class="card" style="flex: 1;">
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <h3>Quick Actions</h3>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <button onclick="loadView('cart')" class="btn">
+                                <i class="fas fa-shopping-cart"></i> View Cart
+                            </button>
+                            <button onclick="loadView('orders')" class="btn-outline">
+                                <i class="fas fa-box"></i> My Orders
+                            </button>
+                            <button onclick="loadView('wishlist')" class="btn-outline">
+                                <i class="fas fa-heart"></i> My Wishlist
+                            </button>
+                        </div>
+                    </div>
+
+                    ${dashboardData.personalizedTips && dashboardData.personalizedTips.length > 0 ? `
+                        <div class="card" style="flex: 1;">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <i class="fas fa-lightbulb"></i>
+                                </div>
+                                <h3>Eco Tips</h3>
+                            </div>
+                            <div style="max-height: 200px; overflow-y: auto;">
+                                ${dashboardData.personalizedTips.map(tip => `
+                                    <div class="flex items-start gap-2 mb-2 p-2" style="background: var(--gray-ultralight); border-radius: var(--border-radius);">
+                                        <div style="font-size: 1.2rem;">${tip.icon}</div>
+                                        <div>${tip.message}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
         }
 
-        let dashboardData = {};
-        try {
-            dashboardData = await apiService.getAdminDashboard();
-        } catch (error) {
-            console.error('Error loading admin dashboard:', error);
-        }
+        async function renderAdminDashboard() {
+            if (!currentUser || currentUser.role !== 'ADMIN') {
+                return `<div class="card"><p>Access denied. Admin dashboard is only for ADMIN role.</p></div>`;
+            }
 
-        return `
-            <h2><i class="fas fa-cog"></i> Admin Dashboard</h2>
+            let dashboardData = {};
+            try {
+                dashboardData = await apiService.getAdminDashboard();
+            } catch (error) {
+                console.error('Error loading admin dashboard:', error);
+            }
 
-            <div class="dashboard-grid">
-                <div class="card">
-                    <h3><i class="fas fa-chart-bar"></i> Platform Stats</h3>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-value">${dashboardData.platformStats?.totalUsers || 0}</div>
-                            <div class="stat-label">Total Users</div>
+            return `
+                <h2><i class="fas fa-cog"></i> Admin Dashboard</h2>
+
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <h3>Platform Stats</h3>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-value">${dashboardData.platformStats?.totalSellers || 0}</div>
-                            <div class="stat-label">Total Sellers</div>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-value">${dashboardData.platformStats?.totalUsers || 0}</div>
+                                <div class="stat-label">Total Users</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">${dashboardData.platformStats?.totalSellers || 0}</div>
+                                <div class="stat-label">Total Sellers</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">${dashboardData.platformStats?.totalProducts || 0}</div>
+                                <div class="stat-label">Total Products</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">${dashboardData.platformStats?.totalOrders || 0}</div>
+                                <div class="stat-label">Total Orders</div>
+                            </div>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-value">${dashboardData.platformStats?.totalProducts || 0}</div>
-                            <div class="stat-label">Total Products</div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <i class="fas fa-leaf"></i>
+                            </div>
+                            <h3>Carbon Impact</h3>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-value">${dashboardData.platformStats?.totalOrders || 0}</div>
-                            <div class="stat-label">Total Orders</div>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-value">${dashboardData.platformStats?.platformCarbonFootprint?.toFixed(1) || 0}</div>
+                                <div class="stat-label">Total Carbon (kg)</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">${dashboardData.platformStats?.platformCarbonSaved?.toFixed(1) || 0}</div>
+                                <div class="stat-label">Carbon Saved (kg)</div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="card">
-                    <h3><i class="fas fa-leaf"></i> Carbon Impact</h3>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-value">${dashboardData.platformStats?.platformCarbonFootprint?.toFixed(1) || 0}</div>
-                            <div class="stat-label">Total Carbon (kg)</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">${dashboardData.platformStats?.platformCarbonSaved?.toFixed(1) || 0}</div>
-                            <div class="stat-label">Carbon Saved (kg)</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex gap-3 mt-3">
-                ${dashboardData.pendingVerifications && dashboardData.pendingVerifications.length > 0 ? `
-                    <div class="card" style="flex: 1;">
-                        <h3><i class="fas fa-clock"></i> Pending Verifications</h3>
-                        <div style="max-height: 300px; overflow-y: auto;">
-                            ${dashboardData.pendingVerifications.slice(0, 5).map(product => `
-                                <div class="flex items-center justify-between mb-2 p-2" style="background: #f9f9f9; border-radius: var(--border-radius);">
-                                    <div>
-                                        <div><strong>${product.productName}</strong></div>
-                                        <div style="font-size: 0.9rem;">Seller: ${product.sellerName}</div>
-                                    </div>
-                                    <button onclick="verifyProduct(${product.productId})" class="btn-secondary" style="padding: 5px 10px; font-size: 0.9rem;">
-                                        <i class="fas fa-check"></i>
-                                    </button>
+                <div class="flex gap-3 mt-3">
+                    ${dashboardData.pendingVerifications && dashboardData.pendingVerifications.length > 0 ? `
+                        <div class="card" style="flex: 1;">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <i class="fas fa-clock"></i>
                                 </div>
-                            `).join('')}
-                            ${dashboardData.pendingVerifications.length > 5 ? `
-                                <div class="text-center mt-2">
-                                    <button onclick="loadView('pending-products')" class="btn-outline">
-                                        View All (${dashboardData.pendingVerifications.length})
-                                    </button>
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                ` : ''}
-
-                ${dashboardData.topSellers && dashboardData.topSellers.length > 0 ? `
-                    <div class="card" style="flex: 1;">
-                        <h3><i class="fas fa-trophy"></i> Top Sellers</h3>
-                        <div style="max-height: 300px; overflow-y: auto;">
-                            ${dashboardData.topSellers.slice(0, 5).map(seller => `
-                                <div class="flex items-center gap-2 mb-2 p-2" style="background: #f9f9f9; border-radius: var(--border-radius);">
-                                    <div style="width: 40px; height: 40px; background: var(--primary-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
-                                        ${seller.sellerName?.charAt(0) || 'S'}
+                                <h3>Pending Verifications</h3>
+                            </div>
+                            <div style="max-height: 300px; overflow-y: auto;">
+                                ${dashboardData.pendingVerifications.slice(0, 5).map(product => `
+                                    <div class="flex items-center justify-between mb-2 p-2" style="background: var(--gray-ultralight); border-radius: var(--border-radius);">
+                                        <div>
+                                            <div><strong>${product.productName}</strong></div>
+                                            <div style="font-size: 0.9rem;">Seller: ${product.sellerName}</div>
+                                        </div>
+                                        <button onclick="verifyProduct(${product.productId})" class="btn-secondary btn-sm">
+                                            <i class="fas fa-check"></i>
+                                        </button>
                                     </div>
-                                    <div style="flex: 1;">
-                                        <div><strong>${seller.sellerName}</strong></div>
-                                        <div style="font-size: 0.9rem;">Revenue: $${seller.revenue?.toFixed(2)}</div>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                ` : ''}
-            </div>
-
-            <div class="card mt-3">
-                <h3><i class="fas fa-rocket"></i> Quick Actions</h3>
-                <div class="flex gap-2">
-                    <button onclick="loadView('pending-products')" class="btn">
-                        <i class="fas fa-check-circle"></i> Verify Products
-                    </button>
-                    <button onclick="loadView('all-orders')" class="btn-outline">
-                        <i class="fas fa-list"></i> View All Orders
-                    </button>
-                    <button onclick="loadView('categories')" class="btn-outline">
-                        <i class="fas fa-tags"></i> Manage Categories
-                    </button>
-                </div>
-            </div>
-        `;
-    }
-
-    async function renderProducts(params = {}) {
-        const { category, search } = params;
-        let productsData = { products: [] };
-
-        try {
-            const queryParams = {};
-            if (category) queryParams.category = category;
-            if (search) queryParams.search = search;
-
-            productsData = await apiService.getProducts(queryParams);
-            products = productsData.products || [];
-        } catch (error) {
-            console.error('Error loading products:', error);
-        }
-
-        return `
-            <div class="flex justify-between items-center mb-3">
-                <h2>Eco Products</h2>
-                <div class="flex gap-2">
-                    <input type="text" id="productSearch" class="form-control" placeholder="Search products..." value="${search || ''}"
-                           onkeyup="if(event.key === 'Enter') searchProducts()">
-                    <button onclick="searchProducts()" class="btn">
-                        <i class="fas fa-search"></i> Search
-                    </button>
-                </div>
-            </div>
-
-            <div class="flex gap-2 mb-3" style="flex-wrap: wrap;">
-                <button onclick="loadView('products')" class="btn-outline ${!category ? 'active' : ''}">
-                    All Categories
-                </button>
-                ${categories.slice(0, 6).map(cat => `
-                    <button onclick="loadView('products', {category: '${cat.name}'})"
-                            class="btn-outline ${category === cat.name ? 'active' : ''}">
-                        ${cat.name}
-                    </button>
-                `).join('')}
-            </div>
-
-            ${products.length > 0 ? `
-                <div class="products-grid">
-                    ${products.map(product => `
-                        <div class="product-card">
-                            <div class="product-image">
-                                ${product.imageUrl ?
-                                    `<img src="${product.imageUrl}" alt="${product.name}" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\"fas fa-leaf\" style=\"font-size: 3rem; color: var(--primary-color);\"></i>';">` :
-                                    `<i class="fas fa-leaf" style="font-size: 3rem; color: var(--primary-color);"></i>`
-                                }
-                                ${product.featured ? `
-                                    <div style="position: absolute; top: 10px; right: 10px; background: var(--secondary-color); color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem;">
-                                        <i class="fas fa-star"></i> Featured
+                                `).join('')}
+                                ${dashboardData.pendingVerifications.length > 5 ? `
+                                    <div class="text-center mt-2">
+                                        <button onclick="loadView('pending-products')" class="btn-outline">
+                                            View All (${dashboardData.pendingVerifications.length})
+                                        </button>
                                     </div>
                                 ` : ''}
                             </div>
-                            <div class="product-details">
-                                <h3 class="product-name" title="${product.name}">${product.name.length > 50 ? product.name.substring(0, 50) + '...' : product.name}</h3>
-                                <div class="product-price">$${product.price.toFixed(2)}</div>
-                                <div class="product-meta">
-                                    <span title="${product.category}">${product.category.length > 15 ? product.category.substring(0, 15) + '...' : product.category}</span>
-                                    <span><i class="fas fa-eye"></i> ${product.viewCount || 0}</span>
+                        </div>
+                    ` : ''}
+
+                    ${dashboardData.topSellers && dashboardData.topSellers.length > 0 ? `
+                        <div class="card" style="flex: 1;">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <i class="fas fa-trophy"></i>
                                 </div>
-                                <div class="carbon-badge carbon-${product.ecoRating ? product.ecoRating.toLowerCase() : 'b'}">
-                                    <i class="fas fa-cloud"></i> ${product.carbonFootprint} kg CO2e | ${product.ecoRating || 'B'}
-                                </div>
-                                <div class="flex gap-1 mt-2">
-                                    <button onclick="viewProduct(${product.id})" class="btn" style="flex: 1;">
-                                        <i class="fas fa-eye"></i> Details
-                                    </button>
-                                    ${currentUser && currentUser.role === 'USER' ? `
-                                        <button onclick="addToCart(${product.id})" class="btn-secondary">
-                                            <i class="fas fa-cart-plus"></i>
-                                        </button>
-                                    ` : ''}
-                                </div>
+                                <h3>Top Sellers</h3>
+                            </div>
+                            <div style="max-height: 300px; overflow-y: auto;">
+                                ${dashboardData.topSellers.slice(0, 5).map(seller => `
+                                    <div class="flex items-center gap-2 mb-2 p-2" style="background: var(--gray-ultralight); border-radius: var(--border-radius);">
+                                        <div style="width: 40px; height: 40px; background: var(--primary-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                            ${seller.sellerName?.charAt(0) || 'S'}
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div><strong>${seller.sellerName}</strong></div>
+                                            <div style="font-size: 0.9rem;">Revenue: $${seller.revenue?.toFixed(2)}</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
                             </div>
                         </div>
-                    `).join('')}
+                    ` : ''}
                 </div>
 
-                ${productsData.totalPages > 1 ? `
-                    <div class="flex justify-center gap-2 mt-3">
-                        <button onclick="loadProductsPage(${productsData.currentPage - 1})"
-                                class="btn-outline ${!productsData.hasPrevious ? 'hidden' : ''}">
-                            <i class="fas fa-chevron-left"></i> Previous
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <h3>Quick Actions</h3>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="loadView('pending-products')" class="btn">
+                            <i class="fas fa-check-circle"></i> Verify Products
                         </button>
-                        <span class="flex items-center">Page ${productsData.currentPage + 1} of ${productsData.totalPages}</span>
-                        <button onclick="loadProductsPage(${productsData.currentPage + 1})"
-                                class="btn-outline ${!productsData.hasNext ? 'hidden' : ''}">
-                            Next <i class="fas fa-chevron-right"></i>
+                        <button onclick="loadView('all-orders')" class="btn-outline">
+                            <i class="fas fa-list"></i> View All Orders
                         </button>
-                    </div>
-                ` : ''}
-            ` : `
-                <div class="card">
-                    <h3>No products found</h3>
-                    <p>${search ? `No products match your search "${search}"` : 'No products available in this category'}</p>
-                    <button onclick="loadView('products')" class="btn mt-2">
-                        <i class="fas fa-store"></i> Browse All Products
-                    </button>
-                </div>
-            `}
-        `;
-    }
-
-    async function viewProduct(productId) {
-        try {
-            const product = await apiService.getProductById(productId);
-
-            const content = `
-                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
-                    <div>
-                        <div class="product-image" style="height: 300px;">
-                            ${product.imageUrl ?
-                                `<img src="${product.imageUrl}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\"fas fa-leaf\" style=\"font-size: 5rem; color: var(--primary-color);\"></i>';">` :
-                                `<i class="fas fa-leaf" style="font-size: 5rem; color: var(--primary-color);"></i>`
-                            }
-                        </div>
-                    </div>
-                    <div>
-                        <h2>${product.name}</h2>
-                        <div class="product-price" style="font-size: 1.8rem;">$${product.price.toFixed(2)}</div>
-
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="carbon-badge carbon-${product.ecoRating ? product.ecoRating.toLowerCase() : 'b'}" style="font-size: 1rem;">
-                                <i class="fas fa-cloud"></i> ${product.carbonFootprint} kg CO2e | ${product.ecoRating || 'B'}
-                            </span>
-                            ${product.verified ? `
-                                <span style="background: var(--success-color); color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.9rem;">
-                                    <i class="fas fa-check-circle"></i> Verified
-                                </span>
-                            ` : ''}
-                        </div>
-
-                        <p>${product.description}</p>
-
-                        <div class="product-meta">
-                            <div><strong>Category:</strong> ${product.category}</div>
-                            <div><strong>Seller:</strong> ${product.sellerName || 'Unknown'}</div>
-                            <div><strong>Stock:</strong> ${product.quantity} available</div>
-                            <div><strong>Views:</strong> ${product.viewCount || 0}</div>
-                            <div><strong>Sold:</strong> ${product.soldCount || 0}</div>
-                            <div><strong>Rating:</strong> ${product.averageRating || 'No ratings yet'}</div>
-                        </div>
-
-                        ${currentUser && currentUser.role === 'USER' ? `
-                            <div class="flex gap-2 mt-3">
-                                <button onclick="addToCart(${product.id})" class="btn" style="flex: 1;">
-                                    <i class="fas fa-cart-plus"></i> Add to Cart
-                                </button>
-                                <button onclick="addToWishlist(${product.id})" class="btn-outline">
-                                    <i class="fas fa-heart"></i> Wishlist
-                                </button>
-                            </div>
-                        ` : ''}
-
-                        ${currentUser && (currentUser.role === 'ADMIN' || (currentUser.role === 'SELLER' && currentUser.id === product.sellerId)) ? `
-                            <div class="flex gap-2 mt-3">
-                                <button onclick="loadView('edit-product', {id: ${product.id}})" class="btn">
-                                    <i class="fas fa-edit"></i> Edit Product
-                                </button>
-                                ${currentUser.role === 'ADMIN' ? `
-                                    <button onclick="toggleFeatured(${product.id})" class="btn-secondary">
-                                        <i class="fas fa-star"></i> ${product.featured ? 'Unfeature' : 'Feature'}
-                                    </button>
-                                    ${!product.verified ? `
-                                        <button onclick="verifyProduct(${product.id})" class="btn">
-                                            <i class="fas fa-check-circle"></i> Verify
-                                        </button>
-                                    ` : ''}
-                                ` : ''}
-                            </div>
-                        ` : ''}
-                    </div>
-                </div>
-
-                <div class="mt-3">
-                    <h3>Carbon Breakdown</h3>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-label">Manufacturing</div>
-                            <div class="stat-value">${product.carbonBreakdown?.manufacturing || 0}</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Transportation</div>
-                            <div class="stat-value">${product.carbonBreakdown?.transportation || 0}</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Packaging</div>
-                            <div class="stat-value">${product.carbonBreakdown?.packaging || 0}</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Disposal</div>
-                            <div class="stat-value">${product.carbonBreakdown?.disposal || 0}</div>
-                        </div>
+                        <button onclick="loadView('categories')" class="btn-outline">
+                            <i class="fas fa-tags"></i> Manage Categories
+                        </button>
                     </div>
                 </div>
             `;
-
-            openModal(product.name, content);
-        } catch (error) {
-            showNotification(`Error loading product: ${error.message}`, 'error');
-        }
-    }
-
-    async function addToCart(productId) {
-        if (!currentUser || currentUser.role !== 'USER') {
-            showNotification('Please login as a user to add items to cart', 'error');
-            return;
         }
 
-        try {
-            await apiService.addToCart(currentUser.id, { productId, quantity: 1 });
-            showNotification('Product added to cart!', 'success');
-            loadView('cart');
-        } catch (error) {
-            showNotification(`Error adding to cart: ${error.message}`, 'error');
-        }
-    }
+        async function renderProducts(params = {}) {
+            const { category, search } = params;
+            let productsData = { products: [] };
 
-    async function addToWishlist(productId) {
-        if (!currentUser) {
-            showNotification('Please login to add items to wishlist', 'error');
-            return;
-        }
+            try {
+                const queryParams = {};
+                if (category) queryParams.category = category;
+                if (search) queryParams.search = search;
 
-        try {
-            await apiService.addToWishlist(currentUser.id, productId);
-            showNotification('Product added to wishlist!', 'success');
-        } catch (error) {
-            showNotification(`Error adding to wishlist: ${error.message}`, 'error');
-        }
-    }
+                productsData = await apiService.getProducts(queryParams);
+                products = productsData.products || [];
+            } catch (error) {
+                console.error('Error loading products:', error);
+            }
 
-    // Utility functions
-    function searchProducts() {
-        const searchTerm = document.getElementById('productSearch').value;
-        loadView('products', { search: searchTerm });
-    }
-
-    async function loadProductsPage(page) {
-        loadView('products', { page });
-    }
-
-    async function verifyProduct(productId) {
-        if (!currentUser || currentUser.role !== 'ADMIN') {
-            showNotification('Only admins can verify products', 'error');
-            return;
-        }
-
-        try {
-            await apiService.verifyProduct(productId);
-            showNotification('Product verified successfully!', 'success');
-            closeModal();
-            loadView('pending-products');
-        } catch (error) {
-            showNotification(`Error verifying product: ${error.message}`, 'error');
-        }
-    }
-
-    async function toggleFeatured(productId) {
-        if (!currentUser || currentUser.role !== 'ADMIN') {
-            showNotification('Only admins can feature products', 'error');
-            return;
-        }
-
-        try {
-            await apiService.toggleFeaturedStatus(productId);
-            showNotification('Product featured status updated!', 'success');
-            closeModal();
-        } catch (error) {
-            showNotification(`Error updating featured status: ${error.message}`, 'error');
-        }
-    }
-
-    function handleEditImageUpload(event) {
-        handleImageUpload(event);
-    }
-
-    function clearEditImage() {
-        clearImage();
-    }
-
-    // Static pages
-    function renderAbout() {
-        return `
-            <div class="card">
-                <h2>About EcoBazaar</h2>
-                <p>EcoBazaar is a sustainable e-commerce platform dedicated to promoting environmentally friendly products and conscious consumerism.</p>
-
-                <h3 class="mt-3">Our Mission</h3>
-                <p>To make sustainable shopping accessible and transparent by providing detailed carbon footprint information for every product.</p>
-
-                <h3 class="mt-3">How It Works</h3>
-                <div class="stats-grid mt-2">
-                    <div class="stat-item">
-                        <div class="stat-value"><i class="fas fa-leaf"></i></div>
-                        <div class="stat-label">Sustainable Products</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value"><i class="fas fa-cloud"></i></div>
-                        <div class="stat-label">Carbon Tracking</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value"><i class="fas fa-check-circle"></i></div>
-                        <div class="stat-label">Verified Sellers</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value"><i class="fas fa-chart-line"></i></div>
-                        <div class="stat-label">Impact Analytics</div>
+            return `
+                <div class="flex justify-between items-center mb-3">
+                    <h2>Eco Products</h2>
+                    <div class="flex gap-2">
+                        <input type="text" id="productSearch" class="form-control" placeholder="Search products..." value="${search || ''}"
+                               onkeyup="if(event.key === 'Enter') searchProducts()">
+                        <button onclick="searchProducts()" class="btn">
+                            <i class="fas fa-search"></i> Search
+                        </button>
                     </div>
                 </div>
 
-                <h3 class="mt-3">Our Impact</h3>
-                <p>Since our launch, EcoBazaar has helped save over 2,500 tons of CO2 emissions through conscious consumer choices.</p>
-            </div>
-        `;
-    }
-
-    function renderContact() {
-        return `
-            <div class="form-container">
-                <h2>Contact Us</h2>
-                <p>Have questions or feedback? Get in touch with our team.</p>
-
-                <div class="card mt-3">
-                    <h3><i class="fas fa-envelope"></i> Email</h3>
-                    <p>support@ecobazaar.com</p>
+                <div class="flex gap-2 mb-3" style="flex-wrap: wrap;">
+                    <button onclick="loadView('products')" class="btn-outline ${!category ? 'active' : ''}">
+                        All Categories
+                    </button>
+                    ${categories.slice(0, 6).map(cat => `
+                        <button onclick="loadView('products', {category: '${cat.name}'})"
+                                class="btn-outline ${category === cat.name ? 'active' : ''}">
+                            ${cat.name}
+                        </button>
+                    `).join('')}
                 </div>
 
-                <div class="card mt-3">
-                    <h3><i class="fas fa-phone"></i> Phone</h3>
-                    <p>+1 (555) 123-4567</p>
-                </div>
+                ${products.length > 0 ? `
+                    <div class="products-grid">
+                        ${products.map(product => `
+                            <div class="product-card">
+                                <div class="product-image">
+                                    ${product.imageUrl ?
+                                        `<img src="${product.imageUrl}" alt="${product.name}" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\"fas fa-leaf\" style=\"font-size: 3rem; color: var(--primary-color);\"></i>';">` :
+                                        `<i class="fas fa-leaf" style="font-size: 3rem; color: var(--primary-color);"></i>`
+                                    }
+                                    ${product.featured ? `
+                                        <div class="product-badge">
+                                            <i class="fas fa-star"></i> Featured
+                                        </div>
+                                    ` : ''}
+                                </div>
+                                <div class="product-details">
+                                    <h3 class="product-name" title="${product.name}">${product.name.length > 50 ? product.name.substring(0, 50) + '...' : product.name}</h3>
+                                    <div class="product-price">$${product.price.toFixed(2)}</div>
+                                    <div class="product-meta">
+                                        <span title="${product.category}">${product.category.length > 15 ? product.category.substring(0, 15) + '...' : product.category}</span>
+                                        <span><i class="fas fa-eye"></i> ${product.viewCount || 0}</span>
+                                    </div>
+                                    <div class="carbon-badge carbon-${product.ecoRating ? product.ecoRating.toLowerCase() : 'b'}">
+                                        <i class="fas fa-cloud"></i> ${product.carbonFootprint} kg CO2e | ${product.ecoRating || 'B'}
+                                    </div>
+                                    <div class="flex gap-1 mt-2">
+                                        <button onclick="viewProduct(${product.id})" class="btn" style="flex: 1;">
+                                            <i class="fas fa-eye"></i> Details
+                                        </button>
+                                        ${currentUser && currentUser.role === 'USER' ? `
+                                            <button onclick="addToCart(${product.id})" class="btn-secondary">
+                                                <i class="fas fa-cart-plus"></i>
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
 
-                <div class="card mt-3">
-                    <h3><i class="fas fa-map-marker-alt"></i> Address</h3>
-                    <p>123 Green Street<br>Sustainable City, SC 12345<br>United States</p>
-                </div>
-            </div>
-        `;
-    }
-
-    function renderPrivacy() {
-        return `
-            <div class="card">
-                <h2>Privacy Policy</h2>
-                <p>Last updated: December 24, 2024</p>
-
-                <h3 class="mt-3">Information We Collect</h3>
-                <p>We collect information you provide directly to us, such as when you create an account, make a purchase, or contact us for support.</p>
-
-                <h3 class="mt-3">How We Use Your Information</h3>
-                <p>We use the information we collect to provide, maintain, and improve our services, process transactions, and communicate with you.</p>
-
-                <h3 class="mt-3">Data Security</h3>
-                <p>We implement appropriate technical and organizational measures to protect your personal information against unauthorized access or disclosure.</p>
-
-                <h3 class="mt-3">Your Rights</h3>
-                <p>You have the right to access, correct, or delete your personal information. Contact us at privacy@ecobazaar.com to exercise these rights.</p>
-            </div>
-        `;
-    }
-
-    // Initialize the app
-    updateUIForUser();
-
-    // Add CSS for animations
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+                    ${productsData.totalPages > 1 ? `
+                        <div class="flex justify-center gap-2 mt-3">
+                            <button onclick="loadProductsPage(${productsData.currentPage - 1})"
+                                    class="btn-outline ${!productsData.hasPrevious ? 'hidden' : ''}">
+                                <i class="fas fa-chevron-left"></i> Previous
+                            </button>
+                            <span class="flex items-center">Page ${productsData.currentPage + 1} of ${productsData.totalPages}</span>
+                            <button onclick="loadProductsPage(${productsData.currentPage + 1})"
+                                    class="btn-outline ${!productsData.hasNext ? 'hidden' : ''}">
+                                Next <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    ` : ''}
+                ` : `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <h3>No products found</h3>
+                        </div>
+                        <p>${search ? `No products match your search "${search}"` : 'No products available in this category'}</p>
+                        <button onclick="loadView('products')" class="btn mt-2">
+                            <i class="fas fa-store"></i> Browse All Products
+                        </button>
+                    </div>
+                `}
+            `;
         }
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-        }
-    `;
-    document.head.appendChild(style);
 
+        async function viewProduct(productId) {
+            try {
+                const product = await apiService.getProductById(productId);
+
+                const content = `
+                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
+                        <div>
+                            <div class="product-image" style="height: 300px;">
+                                ${product.imageUrl ?
+                                    `<img src="${product.imageUrl}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\"fas fa-leaf\" style=\"font-size: 5rem; color: var(--primary-color);\"></i>';">` :
+                                    `<i class="fas fa-leaf" style="font-size: 5rem; color: var(--primary-color);"></i>`
+                                }
+                            </div>
+                        </div>
+                        <div>
+                            <h2>${product.name}</h2>
+                            <div class="product-price" style="font-size: 1.8rem;">$${product.price.toFixed(2)}</div>
+
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="carbon-badge carbon-${product.ecoRating ? product.ecoRating.toLowerCase() : 'b'}" style="font-size: 1rem;">
+                                    <i class="fas fa-cloud"></i> ${product.carbonFootprint} kg CO2e | ${product.ecoRating || 'B'}
+                                </span>
+                                ${product.verified ? `
+                                    <span class="badge-success">
+                                        <i class="fas fa-check-circle"></i> Verified
+                                    </span>
+                                ` : ''}
+                            </div>
+
+                            <p>${product.description}</p>
+
+                            <div class="product-meta">
+                                <div><strong>Category:</strong> ${product.category}</div>
+                                <div><strong>Seller:</strong> ${product.sellerName || 'Unknown'}</div>
+                                <div><strong>Stock:</strong> ${product.quantity} available</div>
+                                <div><strong>Views:</strong> ${product.viewCount || 0}</div>
+                                <div><strong>Sold:</strong> ${product.soldCount || 0}</div>
+                                <div><strong>Rating:</strong> ${product.averageRating || 'No ratings yet'}</div>
+                            </div>
+
+                            ${currentUser && currentUser.role === 'USER' ? `
+                                <div class="flex gap-2 mt-3">
+                                    <button onclick="addToCart(${product.id})" class="btn" style="flex: 1;">
+                                        <i class="fas fa-cart-plus"></i> Add to Cart
+                                    </button>
+                                    <button onclick="addToWishlist(${product.id})" class="btn-outline">
+                                        <i class="fas fa-heart"></i> Wishlist
+                                    </button>
+                                </div>
+                            ` : ''}
+
+                            ${currentUser && (currentUser.role === 'ADMIN' || (currentUser.role === 'SELLER' && currentUser.id === product.sellerId)) ? `
+                                <div class="flex gap-2 mt-3">
+                                    <button onclick="loadView('edit-product', {id: ${product.id}})" class="btn">
+                                        <i class="fas fa-edit"></i> Edit Product
+                                    </button>
+                                    ${currentUser.role === 'ADMIN' ? `
+                                        <button onclick="toggleFeatured(${product.id})" class="btn-secondary">
+                                            <i class="fas fa-star"></i> ${product.featured ? 'Unfeature' : 'Feature'}
+                                        </button>
+                                        ${!product.verified ? `
+                                            <button onclick="verifyProduct(${product.id})" class="btn">
+                                                <i class="fas fa-check-circle"></i> Verify
+                                            </button>
+                                        ` : ''}
+                                    ` : ''}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <h3>Carbon Breakdown</h3>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-label">Manufacturing</div>
+                                <div class="stat-value">${product.carbonBreakdown?.manufacturing || 0}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Transportation</div>
+                                <div class="stat-value">${product.carbonBreakdown?.transportation || 0}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Packaging</div>
+                                <div class="stat-value">${product.carbonBreakdown?.packaging || 0}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Disposal</div>
+                                <div class="stat-value">${product.carbonBreakdown?.disposal || 0}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                openModal(product.name, content);
+            } catch (error) {
+                showNotification(`Error loading product: ${error.message}`, 'error');
+            }
+        }
+
+        async function addToCart(productId) {
+            if (!currentUser || currentUser.role !== 'USER') {
+                showNotification('Please login as a user to add items to cart', 'error');
+                return;
+            }
+
+            try {
+                await apiService.addToCart(currentUser.id, { productId, quantity: 1 });
+                showNotification('Product added to cart!', 'success');
+                loadView('cart');
+            } catch (error) {
+                showNotification(`Error adding to cart: ${error.message}`, 'error');
+            }
+        }
+
+        async function addToWishlist(productId) {
+            if (!currentUser) {
+                showNotification('Please login to add items to wishlist', 'error');
+                return;
+            }
+
+            try {
+                await apiService.addToWishlist(currentUser.id, productId);
+                showNotification('Product added to wishlist!', 'success');
+            } catch (error) {
+                showNotification(`Error adding to wishlist: ${error.message}`, 'error');
+            }
+        }
+
+        // Utility functions
+        function searchProducts() {
+            const searchTerm = document.getElementById('productSearch').value;
+            loadView('products', { search: searchTerm });
+        }
+
+        async function loadProductsPage(page) {
+            loadView('products', { page });
+        }
+
+        async function verifyProduct(productId) {
+            if (!currentUser || currentUser.role !== 'ADMIN') {
+                showNotification('Only admins can verify products', 'error');
+                return;
+            }
+
+            try {
+                await apiService.verifyProduct(productId);
+                showNotification('Product verified successfully!', 'success');
+                closeModal();
+                loadView('pending-products');
+            } catch (error) {
+                showNotification(`Error verifying product: ${error.message}`, 'error');
+            }
+        }
+
+        async function toggleFeatured(productId) {
+            if (!currentUser || currentUser.role !== 'ADMIN') {
+                showNotification('Only admins can feature products', 'error');
+                return;
+            }
+
+            try {
+                await apiService.toggleFeaturedStatus(productId);
+                showNotification('Product featured status updated!', 'success');
+                closeModal();
+            } catch (error) {
+                showNotification(`Error updating featured status: ${error.message}`, 'error');
+            }
+        }
+
+        function handleEditImageUpload(event) {
+            handleImageUpload(event);
+        }
+
+        function clearEditImage() {
+            clearImage();
+        }
+
+        // Static pages
+        function renderAbout() {
+            return `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <h2>About EcoBazaar</h2>
+                    </div>
+                    <p>EcoBazaar is a sustainable e-commerce platform dedicated to promoting environmentally friendly products and conscious consumerism.</p>
+
+                    <h3 class="mt-3">Our Mission</h3>
+                    <p>To make sustainable shopping accessible and transparent by providing detailed carbon footprint information for every product.</p>
+
+                    <h3 class="mt-3">How It Works</h3>
+                    <div class="stats-grid mt-2">
+                        <div class="stat-item">
+                            <div class="stat-value"><i class="fas fa-leaf"></i></div>
+                            <div class="stat-label">Sustainable Products</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value"><i class="fas fa-cloud"></i></div>
+                            <div class="stat-label">Carbon Tracking</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value"><i class="fas fa-check-circle"></i></div>
+                            <div class="stat-label">Verified Sellers</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value"><i class="fas fa-chart-line"></i></div>
+                            <div class="stat-label">Impact Analytics</div>
+                        </div>
+                    </div>
+
+                    <h3 class="mt-3">Our Impact</h3>
+                    <p>Since our launch, EcoBazaar has helped save over 2,500 tons of CO2 emissions through conscious consumer choices.</p>
+                </div>
+            `;
+        }
+
+        function renderContact() {
+            return `
+                <div class="form-container">
+                    <h2>Contact Us</h2>
+                    <p>Have questions or feedback? Get in touch with our team.</p>
+
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <h3>Email</h3>
+                        </div>
+                        <p>support@ecobazaar.com</p>
+                    </div>
+
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <h3>Phone</h3>
+                        </div>
+                        <p>+1 (555) 123-4567</p>
+                    </div>
+
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <h3>Address</h3>
+                        </div>
+                        <p>123 Green Street<br>Sustainable City, SC 12345<br>United States</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPrivacy() {
+            return `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h2>Privacy Policy</h2>
+                    </div>
+                    <p>Last updated: December 24, 2024</p>
+
+                    <h3 class="mt-3">Information We Collect</h3>
+                    <p>We collect information you provide directly to us, such as when you create an account, make a purchase, or contact us for support.</p>
+
+                    <h3 class="mt-3">How We Use Your Information</h3>
+                    <p>We use the information we collect to provide, maintain, and improve our services, process transactions, and communicate with you.</p>
+
+                    <h3 class="mt-3">Data Security</h3>
+                    <p>We implement appropriate technical and organizational measures to protect your personal information against unauthorized access or disclosure.</p>
+
+                    <h3 class="mt-3">Your Rights</h3>
+                    <p>You have the right to access, correct, or delete your personal information. Contact us at privacy@ecobazaar.com to exercise these rights.</p>
+                </div>
+            `;
+        }
+
+        // Initialize the app
+        updateUIForUser();
 </script>
 </body>
 </html>
