@@ -47,8 +47,8 @@ public class DashboardService {
         List<Wishlist> wishlistItems = wishlistRepository.findByUserId(userId);
         List<Review> userReviews = reviewRepository.findByUserIdOrderByCreatedAtDesc(userId);
 
-        // Enhanced Stats with more metrics
-        dashboard.setStats(calculateEnhancedUserStats(orders, wishlistItems, userReviews));
+        // FIX: Pass userId to the method
+        dashboard.setStats(calculateEnhancedUserStats(userId, orders, wishlistItems, userReviews, user));
 
         // Recent Orders (last 10 instead of 5)
         dashboard.setRecentOrders(getRecentOrders(orders, 10));
@@ -71,7 +71,8 @@ public class DashboardService {
         return dashboard;
     }
 
-    private UserStatsDTO calculateEnhancedUserStats(List<Order> orders, List<Wishlist> wishlistItems, List<Review> reviews) {
+    // FIX: Added userId and user parameters
+    private UserStatsDTO calculateEnhancedUserStats(Long userId, List<Order> orders, List<Wishlist> wishlistItems, List<Review> reviews, User user) {
         UserStatsDTO stats = new UserStatsDTO();
 
         // Basic order metrics
@@ -122,9 +123,8 @@ public class DashboardService {
                 .filter(count -> count > 1)
                 .count();
 
-        // Calculate carbon metrics
-        double baselineCarbon = totalOrders * 10.0; // Assume 10kg per order baseline
-        double carbonSaved = Math.max(0, baselineCarbon - totalCarbon);
+        // FIX: Use the user object that's passed in instead of querying again
+        double carbonSaved = user.getTotalCarbonSaved() != null ? user.getTotalCarbonSaved() : 0.0;
 
         // Calculate average carbon per order
         double avgCarbonPerOrder = totalOrders > 0 ? totalCarbon / totalOrders : 0;
@@ -194,14 +194,14 @@ public class DashboardService {
     }
 
     private String determineBadge(int ecoScore) {
-        if (ecoScore >= 2000) return "🏆 Eco Legend";
-        else if (ecoScore >= 1500) return "🌟 Planet Hero";
-        else if (ecoScore >= 1000) return "⭐ Sustainability Master";
-        else if (ecoScore >= 750) return "🦸 Eco Warrior";
-        else if (ecoScore >= 500) return "💚 Low Carbon Leader";
-        else if (ecoScore >= 250) return "🌱 Eco Enthusiast";
-        else if (ecoScore >= 100) return "🌿 Eco Starter";
-        else return "🔰 Green Beginner";
+        if (ecoScore >= 2000) return " Eco Legend";
+        else if (ecoScore >= 1500) return " Planet Hero";
+        else if (ecoScore >= 1000) return " Sustainability Master";
+        else if (ecoScore >= 750) return " Eco Warrior";
+        else if (ecoScore >= 500) return " Low Carbon Leader";
+        else if (ecoScore >= 250) return " Eco Enthusiast";
+        else if (ecoScore >= 100) return " Eco Starter";
+        else return " Green Beginner";
     }
 
     private List<RecentOrderDTO> getRecentOrders(List<Order> orders, int limit) {
@@ -222,23 +222,19 @@ public class DashboardService {
     private List<AchievementDTO> calculateEnhancedAchievements(UserStatsDTO stats, List<Order> orders) {
         List<AchievementDTO> achievements = new ArrayList<>();
 
-        // First order milestone
         achievements.add(new AchievementDTO(
                 "first_order",
-                "🎯 First Step",
+                "First Step",
                 "Place your first eco-friendly order",
-                "🎯",
                 stats.getTotalOrders() >= 1,
                 1,
                 stats.getTotalOrders()
         ));
 
-        // Green shopping milestones
         achievements.add(new AchievementDTO(
                 "green_shopper_5",
-                "🛍️ Green Shopper",
+                "Green Shopper",
                 "Make 5 green purchases (products with low carbon footprint)",
-                "🛍️",
                 stats.getGreenPurchases() >= 5,
                 5,
                 stats.getGreenPurchases()
@@ -246,9 +242,8 @@ public class DashboardService {
 
         achievements.add(new AchievementDTO(
                 "green_shopper_25",
-                "🌟 Green Shopping Pro",
+                "Green Shopping Pro",
                 "Make 25 green purchases",
-                "🌟",
                 stats.getGreenPurchases() >= 25,
                 25,
                 stats.getGreenPurchases()
@@ -256,20 +251,17 @@ public class DashboardService {
 
         achievements.add(new AchievementDTO(
                 "green_shopper_50",
-                "💎 Green Shopping Master",
+                "Green Shopping Master",
                 "Make 50 green purchases",
-                "💎",
                 stats.getGreenPurchases() >= 50,
                 50,
                 stats.getGreenPurchases()
         ));
 
-        // Carbon savings milestones
         achievements.add(new AchievementDTO(
                 "carbon_saver_10",
-                "♻️ Carbon Saver",
+                "Carbon Saver",
                 "Save 10kg of CO2 emissions",
-                "♻️",
                 stats.getCarbonSaved() >= 10,
                 10,
                 stats.getCarbonSaved().intValue()
@@ -277,9 +269,8 @@ public class DashboardService {
 
         achievements.add(new AchievementDTO(
                 "carbon_saver_50",
-                "🌍 Planet Protector",
+                "Planet Protector",
                 "Save 50kg of CO2 emissions",
-                "🌍",
                 stats.getCarbonSaved() >= 50,
                 50,
                 stats.getCarbonSaved().intValue()
@@ -287,9 +278,8 @@ public class DashboardService {
 
         achievements.add(new AchievementDTO(
                 "carbon_saver_100",
-                "🌎 Climate Champion",
+                "Climate Champion",
                 "Save 100kg of CO2 emissions",
-                "🌎",
                 stats.getCarbonSaved() >= 100,
                 100,
                 stats.getCarbonSaved().intValue()
@@ -297,20 +287,17 @@ public class DashboardService {
 
         achievements.add(new AchievementDTO(
                 "carbon_saver_250",
-                "🌏 Carbon Hero",
+                "Carbon Hero",
                 "Save 250kg of CO2 emissions",
-                "🌏",
                 stats.getCarbonSaved() >= 250,
                 250,
                 stats.getCarbonSaved().intValue()
         ));
 
-        // Eco score milestones
         achievements.add(new AchievementDTO(
                 "eco_starter",
-                "🌿 Eco Starter",
+                "Eco Starter",
                 "Reach 100 eco points",
-                "🌿",
                 stats.getEcoScore() >= 100,
                 100,
                 stats.getEcoScore()
@@ -318,9 +305,8 @@ public class DashboardService {
 
         achievements.add(new AchievementDTO(
                 "eco_enthusiast",
-                "💚 Eco Enthusiast",
+                "Eco Enthusiast",
                 "Reach 500 eco points",
-                "💚",
                 stats.getEcoScore() >= 500,
                 500,
                 stats.getEcoScore()
@@ -328,9 +314,8 @@ public class DashboardService {
 
         achievements.add(new AchievementDTO(
                 "eco_warrior",
-                "🦸 Eco Warrior",
+                "Eco Warrior",
                 "Reach 1000 eco points",
-                "🦸",
                 stats.getEcoScore() >= 1000,
                 1000,
                 stats.getEcoScore()
@@ -338,20 +323,17 @@ public class DashboardService {
 
         achievements.add(new AchievementDTO(
                 "eco_legend",
-                "🏆 Eco Legend",
+                "Eco Legend",
                 "Reach 2000 eco points",
-                "🏆",
                 stats.getEcoScore() >= 2000,
                 2000,
                 stats.getEcoScore()
         ));
 
-        // Order milestones
         achievements.add(new AchievementDTO(
                 "regular_customer",
-                "📦 Regular Customer",
+                "Regular Customer",
                 "Place 10 orders",
-                "📦",
                 stats.getTotalOrders() >= 10,
                 10,
                 stats.getTotalOrders()
@@ -359,9 +341,8 @@ public class DashboardService {
 
         achievements.add(new AchievementDTO(
                 "loyal_customer",
-                "⭐ Loyal Customer",
+                "Loyal Customer",
                 "Place 25 orders",
-                "⭐",
                 stats.getTotalOrders() >= 25,
                 25,
                 stats.getTotalOrders()
@@ -369,20 +350,17 @@ public class DashboardService {
 
         achievements.add(new AchievementDTO(
                 "vip_customer",
-                "👑 VIP Customer",
+                "VIP Customer",
                 "Place 50 orders",
-                "👑",
                 stats.getTotalOrders() >= 50,
                 50,
                 stats.getTotalOrders()
         ));
 
-        // Spending milestones
         achievements.add(new AchievementDTO(
                 "spender_100",
-                "💰 Eco Investor",
+                "Eco Investor",
                 "Spend $100 on eco products",
-                "💰",
                 stats.getTotalSpent() >= 100,
                 100,
                 stats.getTotalSpent().intValue()
@@ -390,9 +368,8 @@ public class DashboardService {
 
         achievements.add(new AchievementDTO(
                 "spender_500",
-                "💵 Eco Patron",
+                "Eco Patron",
                 "Spend $500 on eco products",
-                "💵",
                 stats.getTotalSpent() >= 500,
                 500,
                 stats.getTotalSpent().intValue()
@@ -400,15 +377,13 @@ public class DashboardService {
 
         achievements.add(new AchievementDTO(
                 "spender_1000",
-                "💎 Eco Advocate",
+                "Eco Advocate",
                 "Spend $1000 on eco products",
-                "💎",
                 stats.getTotalSpent() >= 1000,
                 1000,
                 stats.getTotalSpent().intValue()
         ));
 
-        // Sort: unlocked first, then by progress
         achievements.sort((a, b) -> {
             if (a.isUnlocked() != b.isUnlocked()) {
                 return a.isUnlocked() ? -1 : 1;
@@ -450,7 +425,6 @@ public class DashboardService {
         // Beginner tips
         if (stats.getTotalOrders() < 3) {
             tips.add(new CarbonTipDTO(
-                    "🌟",
                     "Welcome to eco-friendly shopping! Start by looking for A+ rated products to maximize your impact.",
                     "GETTING_STARTED",
                     "HIGH"
@@ -462,21 +436,18 @@ public class DashboardService {
             double greenPercentage = (stats.getGreenPurchases() * 100.0) / stats.getTotalItemsPurchased();
             if (greenPercentage < 30) {
                 tips.add(new CarbonTipDTO(
-                        "🌿",
                         String.format("Only %.0f%% of your purchases are 'green'. Try choosing products with carbon footprint under 2kg!", greenPercentage),
                         "SHOPPING",
                         "HIGH"
                 ));
             } else if (greenPercentage < 60) {
                 tips.add(new CarbonTipDTO(
-                        "💚",
                         String.format("Great job! %.0f%% of your purchases are green. Keep it up!", greenPercentage),
                         "ENCOURAGEMENT",
                         "MEDIUM"
                 ));
             } else {
                 tips.add(new CarbonTipDTO(
-                        "⭐",
                         String.format("Excellent! %.0f%% of your purchases are eco-friendly. You're a sustainability champion!", greenPercentage),
                         "CELEBRATION",
                         "LOW"
@@ -497,7 +468,6 @@ public class DashboardService {
 
         if (highestCarbonCategory != null && highestAvgCarbon > 5) {
             tips.add(new CarbonTipDTO(
-                    "📊",
                     String.format("Your %s purchases have high carbon footprint (%.1fkg avg). Consider eco-alternatives in this category!",
                             highestCarbonCategory, highestAvgCarbon),
                     "OPTIMIZATION",
@@ -517,7 +487,6 @@ public class DashboardService {
 
             if (lowCarbonInWishlist < wishlistItems.size() / 2) {
                 tips.add(new CarbonTipDTO(
-                        "❤️",
                         String.format("Your wishlist contains %.1fkg CO2e. Consider prioritizing the %d low-carbon items!",
                                 wishlistTotalCarbon, lowCarbonInWishlist),
                         "WISHLIST",
@@ -543,7 +512,6 @@ public class DashboardService {
                 double ordersPerMonth = (orders.size() * 30.0) / daysBetween;
                 if (ordersPerMonth > 4) {
                     tips.add(new CarbonTipDTO(
-                            "📦",
                             "Consider consolidating your orders to reduce packaging waste and transportation emissions!",
                             "OPTIMIZATION",
                             "MEDIUM"
@@ -562,7 +530,6 @@ public class DashboardService {
         if (nextMilestone > 0) {
             double remaining = nextMilestone - stats.getCarbonSaved();
             tips.add(new CarbonTipDTO(
-                    "🎯",
                     String.format("You're %.1fkg away from saving %dkg CO2e! Keep making eco-friendly choices!",
                             remaining, nextMilestone),
                     "MILESTONE",
@@ -578,7 +545,6 @@ public class DashboardService {
 
         if (unlockedAchievements < totalAchievements) {
             tips.add(new CarbonTipDTO(
-                    "🏆",
                     String.format("You've unlocked %d/%d achievements! Check your dashboard to see what's next!",
                             unlockedAchievements, totalAchievements),
                     "GAMIFICATION",
@@ -588,7 +554,6 @@ public class DashboardService {
 
         // Motivational tips
         tips.add(new CarbonTipDTO(
-                "💚",
                 "Every eco-friendly purchase helps reduce global carbon emissions. Thank you for making a difference!",
                 "MOTIVATION",
                 "LOW"
@@ -631,7 +596,7 @@ public class DashboardService {
 
         CarbonTrendDTO trend = new CarbonTrendDTO();
 
-        // Format labels as "MMM YY"
+        // Format labels as "MMM yy"
         DateTimeFormatter displayFormatter = DateTimeFormatter.ofPattern("MMM yy");
         List<String> labels = new ArrayList<>();
         for (String key : monthlyCarbon.keySet()) {
@@ -860,7 +825,7 @@ public class DashboardService {
                 .sum();
         stats.setPlatformCarbonFootprint(totalCarbon);
 
-        double baselineCarbon = orders.size() * 10.0;
+        double baselineCarbon = orders.size() * 70.0;
         stats.setPlatformCarbonSaved(Math.max(0, baselineCarbon - totalCarbon));
 
         return stats;
@@ -934,7 +899,7 @@ public class DashboardService {
                 .sum();
         impact.setTotalCarbonFootprint(totalCarbon);
 
-        double baselineCarbon = orders.size() * 10.0;
+        double baselineCarbon = orders.size() * 70.0;
         impact.setTotalCarbonSaved(Math.max(0, baselineCarbon - totalCarbon));
 
         double avgCarbon = orders.isEmpty() ? 0 : totalCarbon / orders.size();

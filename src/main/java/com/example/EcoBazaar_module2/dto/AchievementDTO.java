@@ -11,7 +11,6 @@ public class AchievementDTO {
     private String id;
     private String name;
     private String description;
-    private String icon;
     private boolean unlocked;
     private Integer requiredValue;
     private Integer currentValue;

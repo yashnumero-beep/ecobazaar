@@ -5,10 +5,15 @@ import com.example.EcoBazaar_module2.model.User;
 import com.example.EcoBazaar_module2.repository.SellerProfileRepository;
 import com.example.EcoBazaar_module2.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -78,5 +83,30 @@ public class UserService {
     public User getUserById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+    }
+
+    // FIXED: Enhanced leaderboard with real carbon calculations
+    public List<User> getTopEcoUsers(int limit) {
+        List<User> allUsers = userRepository.findAll();
+
+        return allUsers.stream()
+                .filter(user -> user.getTotalCarbonSaved() != null)
+                .sorted((u1, u2) -> Double.compare(u2.getTotalCarbonSaved(), u1.getTotalCarbonSaved()))
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+
+    // FIXED: Proper sorting for all users
+    public List<User> getAllUsersSortedByCarbonSaved() {
+        List<User> allUsers = userRepository.findAll();
+
+        return allUsers.stream()
+                .filter(user -> user.getTotalCarbonSaved() != null)
+                .sorted((u1, u2) -> Double.compare(u2.getTotalCarbonSaved(), u1.getTotalCarbonSaved()))
+                .collect(Collectors.toList());
+    }
+
+    public User findById(Long userId) {
+        return userRepository.findById(userId).orElse(null);
     }
 }

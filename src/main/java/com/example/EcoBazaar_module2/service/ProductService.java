@@ -12,7 +12,9 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -83,10 +85,8 @@ public class ProductService {
             case "newest":
                 return Sort.by("createdAt").descending();
             case "carbon_asc":
-                // Note: Sorting by carbon requires custom handling as it's in related entity
-                // For simplicity, we'll default to created date and filter in application layer if needed
-                return Sort.by("createdAt").descending();
             case "carbon_desc":
+                // Carbon sorting handled by application layer
                 return Sort.by("createdAt").descending();
             default:
                 return Sort.by("createdAt").descending();
@@ -228,6 +228,19 @@ public class ProductService {
                 "Featured: " + product.isFeatured());
     }
 
+    public List<Product> getSimilarProductsByCategory(String category, Long excludeId, int limit) {
+        Pageable pageable = PageRequest.of(0, limit);
+        return productRepository.findBestAlternatives(category, excludeId, pageable);
+    }
+
+    // NEW: Fetch specific products for manual comparison (Flipkart style)
+    public List<Product> getProductsForComparison(Long id1, Long id2) {
+        List<Product> products = productRepository.findAllById(List.of(id1, id2));
+        if (products.size() < 2) {
+            throw new RuntimeException("One or both products not found");
+        }
+        return products;
+    }
     public List<Product> getSellerProducts(Long sellerId) {
         return productRepository.findBySellerId(sellerId);
     }

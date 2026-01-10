@@ -35,9 +35,16 @@ public class ProductCarbonData {
     @Column(nullable = false)
     private Double disposal = 0.0;
 
-    // Always computed, never manually set
+    // Inside ProductCarbonData.java
+
     @Transient
     public Double getTotalCO2e() {
-        return manufacturing + transportation + packaging + usage + disposal;
+        // Treat nulls as 0.0 to prevent crashes
+        double m = manufacturing != null ? manufacturing : 0.0;
+        double t = transportation != null ? transportation : 0.0;
+        double p = packaging != null ? packaging : 0.0;
+        double u = usage != null ? usage : 0.0;
+        double d = disposal != null ? disposal : 0.0;
+        return m + t + p + u + d;
     }
 }

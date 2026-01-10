@@ -54,6 +54,15 @@ public class User {
     private Cart cart;
     // --- End of relationships ---
 
+    // In User.java
+    @Column(name = "total_carbon_saved")
+    private Double totalCarbonSaved;
+
+    @Column(name = "eco_score")
+    private Integer ecoScore;
+
+
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

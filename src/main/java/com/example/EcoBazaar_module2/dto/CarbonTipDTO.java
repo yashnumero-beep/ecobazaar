@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CarbonTipDTO {
-    private String icon;
     private String message;
     private String category;
     private String priority; // HIGH, MEDIUM, LOW

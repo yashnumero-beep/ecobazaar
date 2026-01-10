@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 @Repository
@@ -66,4 +66,25 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             @Param("featured") Boolean featured,
             Pageable pageable
     );
+
+    @Query("SELECT p FROM Product p WHERE p.category = :category AND p.id != :excludeId AND p.verified = true ORDER BY (p.carbonData.manufacturing + p.carbonData.transportation + p.carbonData.packaging + p.carbonData.usage + p.carbonData.disposal) ASC")
+    List<Product> findByCategoryAndIdNotAndVerifiedTrueOrderByTotalCO2eAsc(
+            @Param("category") String category,
+            @Param("excludeId") Long excludeId);
+
+    // Fallback method without order by
+    List<Product> findByCategoryAndIdNotAndVerifiedTrue(String category, Long excludeId);
+
+    @Query("SELECT p FROM Product p " +
+            "JOIN p.carbonData cd " + // inner join ensures we only get products WITH carbon data
+            "WHERE p.category = :category " +
+            "AND p.id != :excludeId " +
+            "AND p.verified = true " +
+            "ORDER BY (cd.manufacturing + cd.transportation + cd.packaging + cd.usage + cd.disposal) ASC")
+    List<Product> findBestAlternatives(
+            @Param("category") String category,
+            @Param("excludeId") Long excludeId,
+            Pageable pageable
+    );
+
 }
